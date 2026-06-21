@@ -1,0 +1,52 @@
+services:
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: locutora
+      MYSQL_USER: wp
+      MYSQL_PASSWORD: wp
+    volumes:
+      - db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:6.5-php8.3-apache
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "8081:80"
+    environment:
+      WORDPRESS_DB_HOST:     db
+      WORDPRESS_DB_NAME:     locutora
+      WORDPRESS_DB_USER:     wp
+      WORDPRESS_DB_PASSWORD: wp
+      WORDPRESS_TABLE_PREFIX: lc_
+      WORDPRESS_DEBUG: "1"
+    volumes:
+      # monta o tema direto na pasta de temas do WP
+      - ./wp-theme-locutora:/var/www/html/wp-content/themes/locutora
+      # uploads persistentes
+      - wp_uploads:/var/www/html/wp-content/uploads
+
+  # WP-CLI: docker compose run --rm wpcli <comando>
+  wpcli:
+    image: wordpress:cli-php8.3
+    depends_on:
+      - db
+      - wordpress
+    environment:
+      WORDPRESS_DB_HOST:     db
+      WORDPRESS_DB_NAME:     locutora
+      WORDPRESS_DB_USER:     wp
+      WORDPRESS_DB_PASSWORD: wp
+    volumes:
+      - ./wp-theme-locutora:/var/www/html/wp-content/themes/locutora
+      - wp_uploads:/var/www/html/wp-content/uploads
+    working_dir: /var/www/html
+
+volumes:
+  db_data:
+  wp_uploads:
