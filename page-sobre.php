@@ -27,12 +27,12 @@
 
     <div class="sobre-bio__stats">
       <div class="sobre-stat">
-        <span class="sobre-stat__num serif">+10</span>
+        <span class="sobre-stat__num serif">+20</span>
         <span class="sobre-stat__label">anos de experiência</span>
       </div>
       <div class="sobre-stat">
-        <span class="sobre-stat__num serif">+500</span>
-        <span class="sobre-stat__label">projetos entregues</span>
+        <span class="sobre-stat__num serif">Jovem Pan</span>
+        <span class="sobre-stat__label">locutora da Classic Pan</span>
       </div>
       <div class="sobre-stat">
         <span class="sobre-stat__num serif">24h</span>
@@ -61,6 +61,21 @@
         <div class="studio-item__title">Entrega rápida</div>
         <p class="studio-item__desc">Arquivos em MP3, WAV ou qualquer formato que o projeto exigir.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- ══ CLIENTES ══ -->
+  <section class="sobre-studio" style="border-top:1px solid var(--border);">
+    <p class="section-eyebrow">Clientes</p>
+    <h2 class="section-title" style="margin-bottom:32px;">Marcas que confiaram na minha voz</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:14px;">
+      <?php
+      $clientes_reais = ['Apple','Netflix','Santander','Bradesco','Globo','Prada','Danone','Nespresso','Audi','McDonald\'s'];
+      foreach ($clientes_reais as $c) : ?>
+        <span style="font-family:'Spectral',serif;font-size:16px;color:#cfc7b6;padding:10px 20px;border:1px solid var(--border);border-radius:8px;">
+          <?php echo esc_html($c); ?>
+        </span>
+      <?php endforeach; ?>
     </div>
   </section>
 

@@ -100,16 +100,16 @@ function locutora_get_duracao(int $post_id): string {
 //       - nome (Text)
 function locutora_get_clientes(): array {
     if (function_exists('get_field')) {
-        return (array) get_field('clientes', 'option') ?: [];
+        $acf = get_field('clientes', 'option');
+        if (!empty($acf)) return (array) $acf;
     }
-    // Fallback hardcoded
     return [
-        ['nome' => 'VAREJO+'],
-        ['nome' => 'Banco Ômega'],
-        ['nome' => 'Rádio Cidade'],
-        ['nome' => 'EDU+'],
-        ['nome' => 'Auto Prime'],
-        ['nome' => 'Studio Lux'],
+        ['nome' => 'Apple'],
+        ['nome' => 'Netflix'],
+        ['nome' => 'Santander'],
+        ['nome' => 'Bradesco'],
+        ['nome' => 'Globo'],
+        ['nome' => 'Nespresso'],
     ];
 }
 

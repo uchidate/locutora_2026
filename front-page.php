@@ -137,8 +137,8 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
         <p class="cta-block__heading serif">Vamos gravar?</p>
         <p class="cta-block__sub">Orçamento em até 24h.</p>
       </div>
-      <a href="<?php echo esc_url($cta_url); ?>" class="btn-primary" style="font-size:15px;padding:16px 30px;">
-        Pedir orçamento
+      <a href="https://wa.me/5511984404171" target="_blank" rel="noopener" class="btn-primary" style="font-size:15px;padding:16px 30px;">
+        Falar no WhatsApp
       </a>
     </div>
   </div>
