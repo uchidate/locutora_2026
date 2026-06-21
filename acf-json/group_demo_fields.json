@@ -4,12 +4,22 @@
     "title": "Campos do Demo",
     "fields": [
       {
+        "key": "field_soundcloud_url",
+        "label": "URL do SoundCloud",
+        "name": "soundcloud_url",
+        "type": "url",
+        "placeholder": "ex: https://soundcloud.com/adrianarosalocutora/nome-da-track",
+        "instructions": "Cole aqui o link da track no SoundCloud. Tem prioridade sobre o arquivo MP3.",
+        "required": 0
+      },
+      {
         "key": "field_audio_file",
-        "label": "Arquivo de áudio",
+        "label": "Arquivo de áudio (MP3)",
         "name": "audio_file",
         "type": "file",
         "return_format": "array",
         "mime_types": "mp3,wav,ogg",
+        "instructions": "Usado quando não há URL do SoundCloud. Gera waveform animado.",
         "required": 0
       },
       {
