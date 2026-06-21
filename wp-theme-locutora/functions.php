@@ -113,7 +113,16 @@ function locutora_get_clientes(): array {
     ];
 }
 
-/* ─── Options Page (requer ACF Pro) ─── */
+/* ─── ACF: local JSON (sincroniza field groups automaticamente) ─── */
+add_filter('acf/settings/load_json', function ($paths) {
+    $paths[] = get_stylesheet_directory() . '/acf-json';
+    return $paths;
+});
+add_filter('acf/settings/save_json', function () {
+    return get_stylesheet_directory() . '/acf-json';
+});
+
+/* ─── Options Page (ACF free suporta desde v6.x) ─── */
 add_action('acf/init', function () {
     if (function_exists('acf_add_options_page')) {
         acf_add_options_page([
