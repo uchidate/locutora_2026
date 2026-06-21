@@ -88,10 +88,10 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
         $pid       = get_the_ID();
         $audio_url = locutora_get_audio_url($pid);
         $duracao   = locutora_get_duracao($pid);
-        $terms     = get_the_terms($pid, 'segmento');
-        $tag       = $terms && !is_wp_error($terms) ? $terms[0]->name : 'Demo';
+        $terms    = get_the_terms($pid, 'segmento');
+        $card_tag = $terms && !is_wp_error($terms) ? $terms[0]->name : 'Demo';
 
-        get_template_part('template-parts/demo-card', null, compact('audio_url', 'duracao', 'tag'));
+        get_template_part('template-parts/demo-card', null, compact('audio_url', 'duracao', 'card_tag'));
       endwhile;
       wp_reset_postdata();
     else : ?>

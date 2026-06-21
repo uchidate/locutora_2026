@@ -1,0 +1,110 @@
+[
+  {
+    "key": "group_demo_fields",
+    "title": "Campos do Demo",
+    "fields": [
+      {
+        "key": "field_audio_file",
+        "label": "Arquivo de áudio",
+        "name": "audio_file",
+        "type": "file",
+        "return_format": "array",
+        "mime_types": "mp3,wav,ogg",
+        "required": 0
+      },
+      {
+        "key": "field_duracao",
+        "label": "Duração",
+        "name": "duracao",
+        "type": "text",
+        "placeholder": "ex: 0:48",
+        "required": 0
+      }
+    ],
+    "location": [
+      [{ "param": "post_type", "operator": "==", "value": "demo" }]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "active": true
+  },
+  {
+    "key": "group_theme_options",
+    "title": "Opções da Homepage",
+    "fields": [
+      {
+        "key": "field_hero_audio",
+        "label": "Áudio do Hero (Demo Reel)",
+        "name": "hero_audio",
+        "type": "file",
+        "return_format": "array",
+        "mime_types": "mp3,wav,ogg",
+        "required": 0
+      },
+      {
+        "key": "field_hero_duracao",
+        "label": "Duração do Hero",
+        "name": "hero_duracao",
+        "type": "text",
+        "placeholder": "ex: 0:48",
+        "default_value": "0:48",
+        "required": 0
+      },
+      {
+        "key": "field_hero_titulo",
+        "label": "Título do Hero",
+        "name": "hero_titulo",
+        "type": "text",
+        "default_value": "A voz certa para a sua marca ser ouvida.",
+        "required": 0
+      },
+      {
+        "key": "field_hero_sub",
+        "label": "Subtítulo do Hero",
+        "name": "hero_sub",
+        "type": "textarea",
+        "rows": 3,
+        "required": 0
+      },
+      {
+        "key": "field_clientes",
+        "label": "Clientes (logos)",
+        "name": "clientes",
+        "type": "repeater",
+        "layout": "table",
+        "sub_fields": [
+          {
+            "key": "field_cliente_nome",
+            "label": "Nome",
+            "name": "nome",
+            "type": "text",
+            "required": 1
+          }
+        ]
+      },
+      {
+        "key": "field_depoimento",
+        "label": "Depoimento",
+        "name": "depoimento",
+        "type": "textarea",
+        "rows": 3,
+        "required": 0
+      },
+      {
+        "key": "field_depoimento_autor",
+        "label": "Autor do depoimento",
+        "name": "depoimento_autor",
+        "type": "text",
+        "required": 0
+      }
+    ],
+    "location": [
+      [{ "param": "options_page", "operator": "==", "value": "locutora-settings" }]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "active": true
+  }
+]

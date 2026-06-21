@@ -1,15 +1,16 @@
 <?php
 /**
  * Template part: Demo Card
- * Vars esperadas: $post (WP_Post), $audio_url (string), $duracao (string), $tag (string)
+ * Args: card_tag (string), audio_url (string), duracao (string)
+ * WP 6.x passa os dados via $args, não como variáveis extraídas.
  */
-$tag      = $tag      ?? 'Demo';
-$duracao  = $duracao  ?? '';
-$audio_url = $audio_url ?? '';
+$card_tag  = $args['card_tag']  ?? 'Demo';
+$duracao   = $args['duracao']   ?? '';
+$audio_url = $args['audio_url'] ?? '';
 ?>
 <article class="demo-card">
   <div class="demo-card__header">
-    <span class="demo-card__tag"><?php echo esc_html($tag); ?></span>
+    <span class="demo-card__tag"><?php echo esc_html($card_tag); ?></span>
     <?php if ($duracao) : ?>
       <span class="demo-card__dur"><?php echo esc_html($duracao); ?></span>
     <?php endif; ?>
