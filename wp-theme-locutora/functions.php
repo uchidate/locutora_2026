@@ -80,18 +80,47 @@ add_action('init', function () {
 //   - duracao     (Text, ex: "0:48")
 //
 // Helpers para obter os valores mesmo sem ACF ativo:
+function locutora_get_soundcloud_url(int $post_id): string {
+    if (function_exists('get_field')) {
+        return (string) (get_field('soundcloud_url', $post_id) ?? '');
+    }
+    return (string) get_post_meta($post_id, '_soundcloud_url', true);
+}
+
 function locutora_get_audio_url(int $post_id): string {
     if (function_exists('get_field')) {
-        return (string) get_field('audio_file', $post_id)['url'] ?? '';
+        $file = get_field('audio_file', $post_id);
+        return (string) ($file['url'] ?? '');
     }
     return (string) get_post_meta($post_id, '_audio_file_url', true);
 }
 
 function locutora_get_duracao(int $post_id): string {
     if (function_exists('get_field')) {
-        return (string) get_field('duracao', $post_id) ?? '';
+        return (string) (get_field('duracao', $post_id) ?? '');
     }
     return (string) get_post_meta($post_id, '_duracao', true);
+}
+
+/**
+ * Monta a URL do iframe do SoundCloud com as cores do tema.
+ * Aceita URL de track ou de playlist.
+ */
+function locutora_soundcloud_embed_url(string $sc_url, bool $mini = true): string {
+    // Constrói manualmente para evitar double-encoding do # da cor
+    $color = 'C9A35B'; // sem # — SC aceita assim
+    $visual = $mini ? 'false' : 'true';
+    return add_query_arg([
+        'url'           => rawurlencode($sc_url),
+        'color'         => '%23' . $color,
+        'auto_play'     => 'false',
+        'hide_related'  => 'true',
+        'show_comments' => 'false',
+        'show_user'     => 'false',
+        'show_reposts'  => 'false',
+        'show_teaser'   => 'false',
+        'visual'        => $visual,
+    ], 'https://w.soundcloud.com/player/');
 }
 
 /* ─── Helper: clientes (logos) ─── */

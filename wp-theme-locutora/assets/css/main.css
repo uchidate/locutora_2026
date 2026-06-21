@@ -533,6 +533,27 @@ button { cursor: pointer; }
   color: var(--cream);
 }
 
+/* ─── SoundCloud embed no card ─── */
+.demo-card__sc {
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0a0907;
+}
+.demo-card__sc .sc-iframe {
+  display: block;
+  width: 100%;
+  height: 166px; /* altura mini do SC player */
+  border: none;
+  /* Filtra para escurecer o fundo branco do player SC no modo mini */
+  filter: brightness(.92) contrast(1.05);
+}
+.demo-card__no-audio {
+  font: 400 13px/1 'Hanken Grotesk';
+  color: var(--muted);
+  margin: 8px 0 0;
+  font-style: italic;
+}
+
 /* ─── Archive de demos ─── */
 .demos-archive {
   padding: 56px 56px;
