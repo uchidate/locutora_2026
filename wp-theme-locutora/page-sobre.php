@@ -1,97 +1,35 @@
 <?php get_header(); ?>
 
-<main class="page-sobre">
-
-  <!-- ══ HERO DA PÁGINA ══ -->
-  <section class="page-hero">
-    <p class="hero__eyebrow">Sobre</p>
-    <h1 class="page-hero__title serif">
-      <?php echo esc_html(get_bloginfo('name')); ?>
-    </h1>
-    <p class="page-hero__sub">Locutora profissional com anos de experiência em comerciais, vídeos institucionais, URA e e‑learning.</p>
+<main class="internal-page internal-page--sobre">
+  <section class="internal-hero internal-hero--sobre">
+    <div class="internal-hero__inner"><h1>Sobre nós:</h1></div>
   </section>
 
-  <!-- ══ BIO ══ -->
-  <section class="sobre-bio">
-    <div class="sobre-bio__text">
+  <section class="about-story">
+    <div class="about-story__copy">
+      <h2>Fundada em 2004, em<br>São Paulo.</h2>
+      <h3>Missão</h3>
+      <p>Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.</p>
+      <h3>Visão</h3>
+      <p>Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.</p>
+      <h3>Valores</h3>
+      <p>Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.</p>
+    </div>
+    <figure class="about-story__image">
+      <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/internal/sobre-intro.png'); ?>" alt="Mesa de áudio de estúdio profissional">
+    </figure>
+  </section>
+
+  <section class="brand-showcase">
+    <h2>Marcas que já confiaram em nossa voz</h2>
+    <div class="brand-grid">
       <?php
-      if (have_posts()) :
-        the_post();
-        the_content();
-      else : ?>
-        <p>Sou locutora profissional dedicada a entregar a voz certa para cada projeto. Com estúdio próprio e equipamentos de alta qualidade, ofereço locução para comerciais de TV e rádio, vídeos institucionais, URA, e‑learning, audiobooks e espera telefônica.</p>
-        <p>Meu compromisso é com a entrega rápida sem abrir mão da qualidade — porque o prazo do seu projeto importa tanto quanto o resultado final.</p>
-        <p>Entre em contato e receba um orçamento em até 24h.</p>
-      <?php endif; ?>
-    </div>
-
-    <div class="sobre-bio__stats">
-      <div class="sobre-stat">
-        <span class="sobre-stat__num serif">+20</span>
-        <span class="sobre-stat__label">anos de experiência</span>
-      </div>
-      <div class="sobre-stat">
-        <span class="sobre-stat__num serif">Jovem Pan</span>
-        <span class="sobre-stat__label">locutora da Classic Pan</span>
-      </div>
-      <div class="sobre-stat">
-        <span class="sobre-stat__num serif">24h</span>
-        <span class="sobre-stat__label">para orçamento</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ EQUIPAMENTOS / ESTÚDIO ══ -->
-  <section class="sobre-studio">
-    <p class="section-eyebrow">Estúdio</p>
-    <h2 class="section-title" style="margin-bottom:32px;">Qualidade de estúdio profissional</h2>
-    <div class="studio-grid">
-      <div class="studio-item">
-        <div class="studio-item__icon">🎙</div>
-        <div class="studio-item__title">Microfone condensador</div>
-        <p class="studio-item__desc">Captação limpa e detalhada para resultados de alta fidelidade.</p>
-      </div>
-      <div class="studio-item">
-        <div class="studio-item__icon">🔇</div>
-        <div class="studio-item__title">Cabine acusticamente tratada</div>
-        <p class="studio-item__desc">Ambiente silencioso e sem reverb para entrega imediatamente utilizável.</p>
-      </div>
-      <div class="studio-item">
-        <div class="studio-item__icon">⚡</div>
-        <div class="studio-item__title">Entrega rápida</div>
-        <p class="studio-item__desc">Arquivos em MP3, WAV ou qualquer formato que o projeto exigir.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ CLIENTES ══ -->
-  <section class="sobre-studio" style="border-top:1px solid var(--border);">
-    <p class="section-eyebrow">Clientes</p>
-    <h2 class="section-title" style="margin-bottom:32px;">Marcas que confiaram na minha voz</h2>
-    <div style="display:flex;flex-wrap:wrap;gap:14px;">
-      <?php
-      $clientes_reais = ['Apple','Netflix','Santander','Bradesco','Globo','Prada','Danone','Nespresso','Audi','McDonald\'s'];
-      foreach ($clientes_reais as $c) : ?>
-        <span style="font-family:'Spectral',serif;font-size:16px;color:#cfc7b6;padding:10px 20px;border:1px solid var(--border);border-radius:8px;">
-          <?php echo esc_html($c); ?>
-        </span>
+      $brands = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
+      foreach ($brands as $brand) : ?>
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/brands/' . $brand . '.png'); ?>" alt="<?php echo esc_attr($brand); ?>" loading="lazy">
       <?php endforeach; ?>
     </div>
   </section>
-
-  <!-- ══ CTA ══ -->
-  <section class="cta-block" style="margin-top:0;">
-    <blockquote class="cta-block__quote">Pronta para dar voz ao seu próximo projeto.</blockquote>
-    <div class="cta-block__footer">
-      <p class="cta-block__author">Orçamento sem compromisso em até 24h.</p>
-      <div class="cta-block__action">
-        <a href="<?php echo esc_url(get_permalink(get_page_by_path('orcamento'))); ?>" class="btn-primary" style="font-size:15px;padding:16px 30px;">
-          Pedir orçamento
-        </a>
-      </div>
-    </div>
-  </section>
-
 </main>
 
 <?php get_footer(); ?>

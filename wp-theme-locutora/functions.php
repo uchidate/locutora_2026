@@ -214,3 +214,27 @@ add_action('acf/init', function () {
         ]);
     }
 });
+
+/* ─── Formulário de contato ─── */
+function locutora_handle_contact(): void {
+    if (!isset($_POST['locutora_contact_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_contact_nonce'])), 'locutora_contact')) {
+        wp_die('Solicitação inválida.', 403);
+    }
+
+    $nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ''));
+    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+    $telefone = sanitize_text_field(wp_unslash($_POST['telefone'] ?? ''));
+    $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
+    $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
+    $ok = $nome && is_email($email) && $assunto && wp_mail(
+        get_option('admin_email'),
+        '[Locutora.com] ' . $assunto,
+        "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
+        ['Reply-To: ' . $nome . ' <' . $email . '>']
+    );
+
+    wp_safe_redirect(add_query_arg('enviado', $ok ? '1' : '0', home_url('/contato/')));
+    exit;
+}
+add_action('admin_post_nopriv_locutora_contact', 'locutora_handle_contact');
+add_action('admin_post_locutora_contact', 'locutora_handle_contact');
