@@ -42,7 +42,20 @@ O script interrompe a publicação quando:
 - o branch atual não é `main`;
 - o histórico local diverge de `origin/main`;
 - os arquivos obrigatórios do tema estão ausentes;
-- algum arquivo PHP contém erro de sintaxe.
+- algum arquivo PHP ou JavaScript contém erro de sintaxe;
+- o artefato contém arquivos proibidos, como `wp-config.php` ou `.env`.
+
+Depois que a Hostinger concluir o deploy, valide versão, tema ativo e rotas:
+
+```bash
+scripts/verify-hostinger-deploy.sh
+```
+
+O domínio padrão é o ambiente temporário atual. Para outro ambiente:
+
+```bash
+HOSTINGER_SITE_URL=https://locutora.com scripts/verify-hostinger-deploy.sh
+```
 
 ## Configuração única no hPanel
 
@@ -70,3 +83,6 @@ Gerenciador de Arquivos da Hostinger.
 - Conteúdo e configurações do WordPress continuam no banco de dados e não fazem
   parte deste deploy.
 - O processo não usa senhas de FTP, SFTP ou do hPanel.
+- O domínio `*.hostingersite.com` recebe `noindex` automaticamente. Ao migrar
+  para `locutora.com`, confirme em **Configurações → Leitura** que a indexação
+  pública está habilitada.

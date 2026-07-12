@@ -1,6 +1,12 @@
 <?php
 defined('ABSPATH') || exit;
 
+if (!defined('DISALLOW_FILE_EDIT')) {
+    define('DISALLOW_FILE_EDIT', true);
+}
+
+const LOCUTORA_SITE_CONFIG_VERSION = 2;
+
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
@@ -64,6 +70,11 @@ function locutora_configure_site_on_activation(): void {
     update_option('default_ping_status', 'closed');
     update_option('default_pingback_flag', 0);
 
+    $host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+    if (str_ends_with($host, '.hostingersite.com')) {
+        update_option('blog_public', 0);
+    }
+
     if ($home_id > 0) {
         update_option('show_on_front', 'page');
         update_option('page_on_front', $home_id);
@@ -73,9 +84,49 @@ function locutora_configure_site_on_activation(): void {
         update_option('page_for_privacy_policy', $privacy_id);
     }
 
+    $sample_page = get_page_by_path('sample-page', OBJECT, 'page');
+    if ($sample_page instanceof WP_Post && $sample_page->post_title === 'Sample Page') {
+        wp_trash_post($sample_page->ID);
+    }
+
+    $hello_world = get_page_by_path('hello-world', OBJECT, 'post');
+    if ($hello_world instanceof WP_Post && $hello_world->post_title === 'Hello world!') {
+        wp_trash_post($hello_world->ID);
+    }
+
+    update_option('locutora_site_config_version', LOCUTORA_SITE_CONFIG_VERSION, false);
     flush_rewrite_rules(false);
 }
 add_action('after_switch_theme', 'locutora_configure_site_on_activation');
+
+add_action('init', function (): void {
+    if ((int) get_option('locutora_site_config_version', 0) < LOCUTORA_SITE_CONFIG_VERSION) {
+        locutora_configure_site_on_activation();
+    }
+}, 99);
+
+function locutora_is_temporary_environment(): bool {
+    $host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+    return str_ends_with($host, '.hostingersite.com');
+}
+
+add_filter('wp_robots', function (array $robots): array {
+    if (locutora_is_temporary_environment()) {
+        $robots['noindex'] = true;
+        $robots['nofollow'] = true;
+        unset($robots['index'], $robots['follow']);
+    }
+
+    return $robots;
+});
+
+add_action('send_headers', function (): void {
+    if (locutora_is_temporary_environment() && !headers_sent()) {
+        header('X-Robots-Tag: noindex, nofollow', true);
+    }
+});
+
+remove_action('wp_head', 'wp_generator');
 
 /* ─── Enqueue assets ─── */
 add_action('wp_enqueue_scripts', function () {

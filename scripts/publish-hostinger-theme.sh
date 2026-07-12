@@ -30,6 +30,12 @@ while IFS= read -r -d '' php_file; do
   php -l "$php_file" >/dev/null
 done < <(find wp-theme-locutora -type f -name '*.php' -print0)
 
+while IFS= read -r -d '' js_file; do
+  node --check "$js_file"
+done < <(find wp-theme-locutora/assets/js -type f -name '*.js' -print0)
+
+git diff --check
+
 git push origin main
 
 deploy_branch="hostinger-theme"
@@ -41,7 +47,17 @@ git subtree split \
   --branch="$temporary_branch" >/dev/null
 
 deploy_commit="$(git rev-parse "$temporary_branch")"
+
+for forbidden_file in wp-config.php .env docker-compose.yml; do
+  if git ls-tree -r --name-only "$temporary_branch" | grep -Fxq "$forbidden_file"; then
+    echo "Erro: arquivo proibido encontrado no artefato: $forbidden_file" >&2
+    git branch -D "$temporary_branch" >/dev/null
+    exit 1
+  fi
+done
+
 git push --force origin "$temporary_branch:$deploy_branch"
 git branch -D "$temporary_branch" >/dev/null
 
 echo "Tema publicado na branch $deploy_branch ($deploy_commit)."
+echo "Após o deploy da Hostinger, execute scripts/verify-hostinger-deploy.sh."
