@@ -533,6 +533,32 @@ button { cursor: pointer; }
   color: var(--cream);
 }
 
+/* ─── Hero SoundCloud embed ─── */
+.hero-player--sc {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  gap: 0;
+}
+.hero-player__sc-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 28px 16px;
+}
+.hero-player__sub-label {
+  font: 400 12px/1 'Hanken Grotesk';
+  color: #6b6457;
+  letter-spacing: .08em;
+}
+.hero-sc-iframe {
+  display: block;
+  width: 100%;
+  height: 200px;
+  border: none;
+}
+
 /* ─── SoundCloud embed no card ─── */
 .demo-card__sc {
   border-radius: 10px;
