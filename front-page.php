@@ -53,15 +53,30 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 <section class="legacy-intro" id="sobre">
   <div class="legacy-intro__copy">
     <h2 class="section-title"><?php echo esc_html(get_theme_mod('locutora_intro_titulo', 'Locutora.com')); ?></h2>
-    <h3><?php echo esc_html(get_theme_mod('locutora_intro_chamada', 'Gravação de voz para publicidade, TV, rádio e URA')); ?></h3>
+    <h3>Locutora Profissional | Gravação de voz para publicidade, TV, rádio e URA</h3>
     <p><strong>Se você procura uma locutora profissional para dar mais credibilidade e impacto à comunicação da sua empresa, está no lugar certo.</strong></p>
     <p><?php echo esc_html(get_theme_mod('locutora_intro_texto_1', 'Sou Adriana Rosa, locutora profissional atuando no mercado desde 2004, especializada em gravação de voz para campanhas publicitárias, vídeos institucionais, URA, espera telefônica, conteúdos corporativos e projetos digitais. Ao longo de mais de duas décadas de experiência, atendi empresas, agências e produtoras em todo o Brasil e exterior, sempre com qualidade profissional e entrega rápida.')); ?></p>
     <h3>Voz para Publicidade, TV e Rádio</h3>
     <p>Uma boa voz para publicidade faz toda a diferença na conexão com o público. Realizo locuções para campanhas promocionais, comerciais, lançamentos de produtos e ações de marketing, oferecendo uma voz marcante e alinhada à identidade da sua marca.</p>
+    <p>Também produzo gravações de voz para TV e rádio, criando mensagens claras, envolventes e profissionais para diferentes formatos de mídia.</p>
     <h3>Serviços de Locução Profissional</h3>
     <p>Gravação para publicidade, TV, rádio, URA, espera telefônica, vídeos institucionais, treinamentos, e-learning, campanhas e conteúdo digital.</p>
+    <ul>
+      <li>Gravação de voz para publicidade</li>
+      <li>Voz para TV e rádio</li>
+      <li>Gravação de URA profissional</li>
+      <li>Espera telefônica personalizada</li>
+      <li>Locução para vídeos institucionais</li>
+      <li>Gravação de URA e espera telefônica</li>
+      <li>Locução para treinamentos e e-learning</li>
+      <li>Campanhas promocionais e comerciais</li>
+      <li>Conteúdo para redes sociais e mídia digital</li>
+    </ul>
+    <h3>Locutora Profissional com Experiência Comprovada</h3>
+    <p>Desde 2004, desenvolvo projetos de locução para empresas de diversos segmentos, contribuindo para fortalecer marcas e melhorar a comunicação com clientes. Minha experiência permite adaptar a interpretação e o estilo de voz às necessidades de cada projeto.</p>
     <h3>Qualidade Profissional e Atendimento Nacional</h3>
-    <p>Com estúdio próprio e equipamentos profissionais, realizo gravações com alta qualidade técnica para empresas de todo o Brasil.</p>
+    <p>Com estúdio próprio e equipamentos profissionais, realizo gravações de voz com alta qualidade técnica, garantindo excelente resultado para empresas que precisam de uma comunicação eficiente e profissional.</p>
+    <p>Solicite um orçamento e descubra como uma voz humana e profissional pode valorizar sua marca, sua campanha e seus projetos de comunicação.</p>
     <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link">Conheça</a>
   </div>
   <figure class="legacy-intro__portrait">
