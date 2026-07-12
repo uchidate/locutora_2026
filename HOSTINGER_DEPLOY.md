@@ -1,16 +1,36 @@
-# Deploy automático do tema na Hostinger
+# Deploy do tema na Hostinger preparado localmente
 
-Este projeto usa uma branch de artefato para impedir que o deploy do tema altere
-o WordPress, o banco de dados, os uploads ou o `wp-config.php`.
+Este projeto usa uma branch de artefato gerada localmente para impedir que o
+deploy do tema altere o WordPress, o banco de dados, os uploads, outros sites da
+conta compartilhada ou o `wp-config.php`.
 
 ## Fluxo
 
-1. Um push em `main` que modifica `wp-theme-locutora/**` executa o workflow
-   `Prepare Hostinger theme deployment`.
-2. O workflow valida os arquivos PHP e publica somente o conteúdo da pasta do
-   tema na branch `hostinger-theme`.
-3. A integração Git da Hostinger acompanha `hostinger-theme` e atualiza apenas
+1. As alterações são verificadas, commitadas e enviadas para `main` localmente.
+2. O script `scripts/publish-hostinger-theme.sh` valida o tema e confirma que o
+   commit local já está presente em `origin/main`.
+3. O script gera e envia a branch `hostinger-theme`, contendo somente o conteúdo
+   de `wp-theme-locutora`.
+4. A integração Git da Hostinger acompanha `hostinger-theme` e atualiza apenas
    a pasta do tema instalada no WordPress.
+
+O projeto não usa GitHub Actions para build ou deploy.
+
+## Publicação local
+
+Depois do commit e do push para `main`, execute:
+
+```bash
+scripts/publish-hostinger-theme.sh
+```
+
+O script interrompe a publicação quando:
+
+- existem mudanças locais ainda não commitadas;
+- o branch atual não é `main`;
+- `main` ainda não foi enviado para `origin/main`;
+- os arquivos obrigatórios do tema estão ausentes;
+- algum arquivo PHP contém erro de sintaxe.
 
 ## Configuração única no hPanel
 
@@ -34,7 +54,7 @@ Gerenciador de Arquivos da Hostinger.
 ## Limites de segurança
 
 - Nunca configure este repositório para publicar diretamente em `public_html`.
-- A branch `hostinger-theme` é gerada automaticamente e não deve ser editada.
+- A branch `hostinger-theme` é gerada pelo script local e não deve ser editada.
 - Conteúdo e configurações do WordPress continuam no banco de dados e não fazem
   parte deste deploy.
-- O workflow não usa senhas de FTP, SFTP ou do hPanel.
+- O processo não usa senhas de FTP, SFTP ou do hPanel.
