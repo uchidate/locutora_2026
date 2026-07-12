@@ -35,6 +35,7 @@ add_action('wp_enqueue_scripts', function () {
 
     wp_enqueue_script('locutora-player', get_template_directory_uri() . '/assets/js/player.js', ['wavesurfer'], $v, true);
     wp_enqueue_script('locutora-hero', get_template_directory_uri() . '/assets/js/hero.js', [], $v, true);
+    wp_enqueue_script('locutora-cookie-consent', get_template_directory_uri() . '/assets/js/cookie-consent.js', [], $v, true);
 });
 
 /* ─── CPT: Demo de áudio ─── */
