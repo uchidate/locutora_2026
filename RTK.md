@@ -4,7 +4,8 @@
 
 - Migrar o site original em Joomla/YOOtheme para o tema WordPress deste repositório.
 - `https://locutora.com` é a referência visual e de conteúdo do site original.
-- `https://darkgoldenrod-swan-951169.hostingersite.com` é o ambiente WordPress que deve reproduzir a referência.
+- `https://plum-walrus-211817.hostingersite.com` é o ambiente WordPress temporário que deve reproduzir a referência.
+- O domínio temporário anterior `darkgoldenrod-swan-951169.hostingersite.com` foi desativado e não deve receber novos deploys.
 - Em comparações, sempre corrigir o ambiente WordPress; não tratar a URL temporária da Hostinger como referência do design.
 
 ## Escopo de fidelidade

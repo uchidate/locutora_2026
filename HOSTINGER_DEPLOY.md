@@ -16,6 +16,18 @@ conta compartilhada ou o `wp-config.php`.
 
 O projeto não usa GitHub Actions para build ou deploy.
 
+## Configuração local do WordPress
+
+Com o ambiente Docker em execução, copie e execute o provisionamento:
+
+```bash
+docker cp scripts/configure-wordpress.php locutora_2026-wordpress-1:/tmp/configure-wordpress.php
+docker exec locutora_2026-wordpress-1 php /tmp/configure-wordpress.php
+```
+
+O script pode ser executado novamente: ele preserva conteúdo editorial existente,
+cria somente páginas estruturais ausentes e reaplica as opções essenciais.
+
 ## Publicação local
 
 Depois do commit local em `main`, execute:
