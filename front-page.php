@@ -19,24 +19,32 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 
 <!-- ══ HERO ══ -->
 <section class="hero" id="hero">
-  <p class="hero__eyebrow">Locutora profissional</p>
+  <video class="hero__video is-active" autoplay muted playsinline preload="metadata" aria-hidden="true">
+    <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/vitrine-1.mp4'); ?>" type="video/mp4">
+  </video>
+  <video class="hero__video" muted playsinline preload="metadata" aria-hidden="true">
+    <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/vitrine-2.mp4'); ?>" type="video/mp4">
+  </video>
+  <video class="hero__video" muted playsinline preload="metadata" aria-hidden="true">
+    <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/vitrine-3.mp4'); ?>" type="video/mp4">
+  </video>
+  <div class="hero__overlay" aria-hidden="true"></div>
+  <div class="hero__content">
+  <p class="hero__eyebrow">Locutora.com</p>
 
   <h1 class="hero__title serif">
     <?php echo wp_kses_post(
-      get_option('locutora_hero_titulo', 'A voz certa para a sua marca ser ouvida.')
+      get_theme_mod('locutora_hero_titulo', 'Gravações profissionais')
     ); ?>
   </h1>
 
   <p class="hero__sub">
-    <?php echo esc_html(get_option(
+    <?php echo esc_html(get_theme_mod(
       'locutora_hero_sub',
-      'Locução para comerciais, vídeos institucionais, URA e e‑learning — com entrega rápida e qualidade de estúdio.'
+      'Adriana Rosa'
     )); ?>
   </p>
 
-  <div class="hero__actions">
-    <a href="#demos" class="btn-primary" style="font-size:15px;padding:16px 30px;border-radius:999px;">Ouvir demos</a>
-    <a href="<?php echo esc_url($cta_url); ?>" class="btn-outline">Pedir orçamento</a>
   </div>
 
   <?php if ($hero_audio) : ?>
@@ -71,6 +79,21 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
     </iframe>
   </div>
   <?php endif; ?>
+</section>
+
+<!-- ══ APRESENTAÇÃO ══ -->
+<section class="legacy-intro" id="sobre">
+  <div class="legacy-intro__copy">
+    <p class="section-eyebrow">Locutora profissional</p>
+    <h2 class="section-title"><?php echo esc_html(get_theme_mod('locutora_intro_titulo', 'Locutora.com')); ?></h2>
+    <h3><?php echo esc_html(get_theme_mod('locutora_intro_chamada', 'Gravação de voz para publicidade, TV, rádio e URA')); ?></h3>
+    <p><?php echo esc_html(get_theme_mod('locutora_intro_texto_1', 'Sou Adriana Rosa, locutora profissional atuando no mercado desde 2004, especializada em gravação de voz para campanhas publicitárias, vídeos institucionais, URA, espera telefônica, conteúdos corporativos e projetos digitais.')); ?></p>
+    <p><?php echo esc_html(get_theme_mod('locutora_intro_texto_2', 'Ao longo de mais de duas décadas de experiência, atendi empresas, agências e produtoras em todo o Brasil e exterior, sempre com qualidade profissional e entrega rápida.')); ?></p>
+    <a href="<?php echo esc_url(get_permalink(get_page_by_path('sobre')) ?: '#sobre'); ?>" class="legacy-link">Conheça Adriana Rosa →</a>
+  </div>
+  <figure class="legacy-intro__portrait">
+    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/adriana-rosa.jpg'); ?>" alt="Adriana Rosa em estúdio">
+  </figure>
 </section>
 
 <!-- ══ LOGOS ══ -->
@@ -128,14 +151,18 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
   <h2 class="section-title" style="margin-bottom:28px;">Para cada projeto, a entonação certa</h2>
   <div class="services-grid">
     <?php
-    $servicos = [
-      ['Comercial &amp; varejo',    'Spots de rádio e TV com energia de venda.'],
-      ['Vídeo institucional',       'Voz que transmite confiança e autoridade.'],
-      ['URA &amp; atendimento',     'Mensagens de espera e menus telefônicos.'],
-      ['E‑learning',                'Narração clara para cursos e treinamentos.'],
-      ['Audiobook &amp; narração',  'Leitura envolvente do começo ao fim.'],
-      ['Espera telefônica',         'Sua marca falando enquanto o cliente aguarda.'],
+    $servicos_fallback = [
+      ['Comerciais',                 'Locução publicitária para campanhas, spots e vídeos.'],
+      ['Emissoras de rádio e TV',    'Chamadas, vinhetas e conteúdos para programação.'],
+      ['Conteúdos para internet',    'Voz para vídeos, podcasts, aplicativos e redes sociais.'],
+      ['URA &amp; espera telefônica','Atendimento claro, acolhedor e alinhado à sua marca.'],
+      ['Vídeos institucionais',      'Narração profissional para empresas e apresentações.'],
+      ['E muito mais',               'E-learning, audiobooks, documentários e projetos especiais.'],
     ];
+    $servicos_posts = get_posts(['post_type' => 'servico', 'numberposts' => -1, 'orderby' => 'menu_order title', 'order' => 'ASC']);
+    $servicos = $servicos_posts
+      ? array_map(fn($item) => [$item->post_title, wp_strip_all_tags($item->post_content)], $servicos_posts)
+      : $servicos_fallback;
     foreach ($servicos as [$titulo, $desc]) : ?>
       <div class="service-item">
         <p class="service-item__title"><?php echo $titulo; ?></p>
@@ -148,8 +175,8 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 <!-- ══ DEPOIMENTO + CTA ══ -->
 <section class="cta-block" id="contato">
   <?php
-  $depoimento = get_option('locutora_depoimento', '"Precisava de uma voz que passasse seriedade sem ser fria. Ela entregou exatamente isso — e antes do prazo."');
-  $dep_autor  = get_option('locutora_depoimento_autor', '— Diretora de Marketing, agência placeholder');
+  $depoimento = get_theme_mod('locutora_depoimento', 'Precisava de uma voz que passasse seriedade sem ser fria. Ela entregou exatamente isso — e antes do prazo.');
+  $dep_autor  = get_theme_mod('locutora_depoimento_autor', 'Cliente Locutora.com');
   ?>
   <blockquote class="cta-block__quote"><?php echo esc_html($depoimento); ?></blockquote>
 
@@ -160,7 +187,7 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
         <p class="cta-block__heading serif">Vamos gravar?</p>
         <p class="cta-block__sub">Orçamento em até 24h.</p>
       </div>
-      <a href="https://wa.me/5511984404171" target="_blank" rel="noopener" class="btn-primary" style="font-size:15px;padding:16px 30px;">
+      <a href="https://wa.me/<?php echo esc_attr(preg_replace('/\D+/', '', get_theme_mod('locutora_whatsapp', '5511984404171'))); ?>" target="_blank" rel="noopener" class="btn-primary" style="font-size:15px;padding:16px 30px;">
         Falar no WhatsApp
       </a>
     </div>

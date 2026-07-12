@@ -18,7 +18,7 @@ add_action('wp_enqueue_scripts', function () {
 
     wp_enqueue_style(
         'google-fonts',
-        'https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap',
+        'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap',
         [],
         null
     );
@@ -34,6 +34,7 @@ add_action('wp_enqueue_scripts', function () {
     );
 
     wp_enqueue_script('locutora-player', get_template_directory_uri() . '/assets/js/player.js', ['wavesurfer'], $v, true);
+    wp_enqueue_script('locutora-hero', get_template_directory_uri() . '/assets/js/hero.js', [], $v, true);
 });
 
 /* ─── CPT: Demo de áudio ─── */
@@ -57,6 +58,57 @@ add_action('init', function () {
         'has_archive'  => true,
         'rewrite'      => ['slug' => 'demos'],
     ]);
+});
+
+/* ─── CPT: Serviços (editável pela administradora) ─── */
+add_action('init', function () {
+    register_post_type('servico', [
+        'labels' => [
+            'name'          => 'Serviços',
+            'singular_name' => 'Serviço',
+            'add_new_item'  => 'Adicionar serviço',
+            'edit_item'     => 'Editar serviço',
+            'not_found'     => 'Nenhum serviço cadastrado',
+        ],
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_rest' => true,
+        'menu_icon'    => 'dashicons-megaphone',
+        'supports'     => ['title', 'editor', 'page-attributes'],
+    ]);
+});
+
+/* ─── Conteúdo principal no Personalizador nativo ─── */
+add_action('customize_register', function (WP_Customize_Manager $customizer) {
+    $customizer->add_section('locutora_content', [
+        'title'       => 'Conteúdo da página inicial',
+        'description' => 'Edite os textos principais sem alterar o tema.',
+        'priority'    => 30,
+    ]);
+
+    $fields = [
+        'locutora_hero_titulo' => ['Título do destaque', 'Gravações profissionais', 'text'],
+        'locutora_hero_sub' => ['Nome no destaque', 'Adriana Rosa', 'text'],
+        'locutora_intro_titulo' => ['Título da apresentação', 'Locutora.com', 'text'],
+        'locutora_intro_chamada' => ['Chamada da apresentação', 'Gravação de voz para publicidade, TV, rádio e URA', 'text'],
+        'locutora_intro_texto_1' => ['Primeiro parágrafo', 'Sou Adriana Rosa, locutora profissional atuando no mercado desde 2004, especializada em gravação de voz para campanhas publicitárias, vídeos institucionais, URA, espera telefônica, conteúdos corporativos e projetos digitais.', 'textarea'],
+        'locutora_intro_texto_2' => ['Segundo parágrafo', 'Ao longo de mais de duas décadas de experiência, atendi empresas, agências e produtoras em todo o Brasil e exterior, sempre com qualidade profissional e entrega rápida.', 'textarea'],
+        'locutora_whatsapp' => ['WhatsApp com DDI e DDD', '5511984404171', 'text'],
+        'locutora_depoimento' => ['Depoimento', 'Precisava de uma voz que passasse seriedade sem ser fria. Ela entregou exatamente isso — e antes do prazo.', 'textarea'],
+        'locutora_depoimento_autor' => ['Autor do depoimento', 'Cliente Locutora.com', 'text'],
+    ];
+
+    foreach ($fields as $id => [$label, $default, $type]) {
+        $customizer->add_setting($id, [
+            'default'           => $default,
+            'sanitize_callback' => $type === 'textarea' ? 'sanitize_textarea_field' : 'sanitize_text_field',
+        ]);
+        $customizer->add_control($id, [
+            'section' => 'locutora_content',
+            'label'   => $label,
+            'type'    => $type,
+        ]);
+    }
 });
 
 /* ─── Taxonomia: Segmento ─── */

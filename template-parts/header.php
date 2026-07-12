@@ -1,10 +1,9 @@
 <?php
-$logo_text = get_bloginfo('name') ?: 'Mariana Reis';
 $cta_url   = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 ?>
 <header class="site-header">
   <a href="<?php echo esc_url(home_url('/')); ?>" class="site-logo">
-    <?php echo esc_html($logo_text); ?><span>.</span>
+    <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png'); ?>" alt="Adriana Rosa — Locutora">
   </a>
 
   <?php
@@ -16,15 +15,13 @@ $cta_url   = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
     'fallback_cb'    => function () { ?>
       <nav>
         <ul class="site-nav">
-          <li><a href="#demos">Demos</a></li>
-          <li><a href="#servicos">Serviços</a></li>
-          <li><a href="#sobre">Sobre</a></li>
-          <li><a href="#contato">Contato</a></li>
+          <li><a href="<?php echo esc_url(home_url('/')); ?>">Home</a></li>
+          <li><a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>">Sobre nós</a></li>
+          <li><a href="<?php echo esc_url(home_url('/servicos/')); ?>">Áudios</a></li>
+          <li><a href="<?php echo esc_url(home_url('/contato/')); ?>">Contato</a></li>
         </ul>
       </nav>
     <?php },
   ]);
   ?>
-
-  <a href="<?php echo esc_url($cta_url); ?>" class="btn-primary">Pedir orçamento</a>
 </header>
