@@ -1,0 +1,49 @@
+name: Prepare Hostinger theme deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "wp-theme-locutora/**"
+      - ".github/workflows/prepare-hostinger-theme.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hostinger-theme-deployment
+  cancel-in-progress: false
+
+jobs:
+  publish-theme-branch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate the WordPress theme
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f wp-theme-locutora/style.css
+          test -f wp-theme-locutora/functions.php
+          grep -q "Theme Name:" wp-theme-locutora/style.css
+          find wp-theme-locutora -type f -name '*.php' -print0 \
+            | xargs -0 -n1 php -l
+
+      - name: Build the Hostinger deployment branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git subtree split \
+            --prefix=wp-theme-locutora \
+            --branch=hostinger-theme
+          git push --force origin hostinger-theme
