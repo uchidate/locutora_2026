@@ -12,6 +12,71 @@ add_action('after_setup_theme', function () {
     ]);
 });
 
+/* ─── Configuração inicial segura ao ativar o tema ─── */
+function locutora_ensure_structural_page(string $slug, string $title, string $template = 'default'): int {
+    $page = get_page_by_path($slug, OBJECT, 'page');
+
+    if ($page instanceof WP_Post) {
+        $page_id = (int) $page->ID;
+    } else {
+        $page_id = wp_insert_post([
+            'post_type'    => 'page',
+            'post_status'  => 'publish',
+            'post_name'    => $slug,
+            'post_title'   => $title,
+            'post_content' => '',
+        ], true);
+
+        if (is_wp_error($page_id)) {
+            return 0;
+        }
+    }
+
+    if ($template !== 'default') {
+        update_post_meta((int) $page_id, '_wp_page_template', $template);
+    }
+
+    return (int) $page_id;
+}
+
+function locutora_configure_site_on_activation(): void {
+    $home_id = locutora_ensure_structural_page('home', 'Home');
+    $privacy_id = locutora_ensure_structural_page(
+        'politica-de-privacidade',
+        'Política de Privacidade',
+        'page-politica-de-privacidade.php'
+    );
+
+    locutora_ensure_structural_page('sobre-nos', 'Sobre nós', 'page-sobre-nos.php');
+    locutora_ensure_structural_page('servicos', 'Áudios', 'page-servicos.php');
+    locutora_ensure_structural_page('contato', 'Contato', 'page-contato.php');
+    locutora_ensure_structural_page('orcamento', 'Orçamento', 'page-orcamento.php');
+
+    update_option('blogname', 'Adriana Rosa');
+    update_option('blogdescription', 'Locutora profissional e gravações de voz');
+    update_option('timezone_string', 'America/Sao_Paulo');
+    update_option('date_format', 'd/m/Y');
+    update_option('time_format', 'H:i');
+    update_option('start_of_week', 1);
+    update_option('permalink_structure', '/%postname%/');
+    update_option('users_can_register', 0);
+    update_option('default_comment_status', 'closed');
+    update_option('default_ping_status', 'closed');
+    update_option('default_pingback_flag', 0);
+
+    if ($home_id > 0) {
+        update_option('show_on_front', 'page');
+        update_option('page_on_front', $home_id);
+    }
+
+    if ($privacy_id > 0) {
+        update_option('page_for_privacy_policy', $privacy_id);
+    }
+
+    flush_rewrite_rules(false);
+}
+add_action('after_switch_theme', 'locutora_configure_site_on_activation');
+
 /* ─── Enqueue assets ─── */
 add_action('wp_enqueue_scripts', function () {
     $v = wp_get_theme()->get('Version');
