@@ -1,13 +1,17 @@
 <?php get_header(); ?>
 
 <?php
-// Hero: áudio principal vem das opções do tema (ACF) ou meta
-$hero_audio = function_exists('get_field')
-  ? ((array) get_field('hero_audio', 'option'))['url'] ?? ''
-  : get_option('locutora_hero_audio', '');
+// Hero: MP3 via ACF ou meta
+$hero_audio_field = function_exists('get_field') ? get_field('hero_audio', 'option') : null;
+$hero_audio = is_array($hero_audio_field) ? ($hero_audio_field['url'] ?? '') : get_option('locutora_hero_audio', '');
+
+// Hero: URL do SoundCloud (fallback quando não há MP3)
+$hero_sc_url = function_exists('get_field')
+  ? (get_field('hero_soundcloud_url', 'option') ?? '')
+  : get_option('locutora_hero_sc_url', 'https://soundcloud.com/adrianarosalocutora');
 
 $hero_dur = function_exists('get_field')
-  ? get_field('hero_duracao', 'option') ?? '0:48'
+  ? (get_field('hero_duracao', 'option') ?? '0:48')
   : get_option('locutora_hero_duracao', '0:48');
 
 $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
@@ -36,6 +40,7 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
   </div>
 
   <?php if ($hero_audio) : ?>
+  <!-- Hero player — WaveSurfer (MP3) -->
   <div class="hero-player">
     <button class="hero-player__btn" id="hero-play" data-src="<?php echo esc_url($hero_audio); ?>" aria-label="Reproduzir demo reel">
       <svg width="20" height="22" viewBox="0 0 20 22" fill="#0F0E0C" aria-hidden="true">
@@ -47,6 +52,23 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
       <p class="hero-player__label">Demo reel</p>
       <p class="hero-player__time mono" id="hero-time"><?php echo esc_html($hero_dur); ?></p>
     </div>
+  </div>
+
+  <?php elseif ($hero_sc_url) : ?>
+  <!-- Hero player — SoundCloud embed -->
+  <div class="hero-player hero-player--sc">
+    <div class="hero-player__sc-label">
+      <p class="hero-player__label">Demo reel</p>
+      <p class="hero-player__sub-label">via SoundCloud</p>
+    </div>
+    <iframe
+      class="hero-sc-iframe"
+      scrolling="no"
+      frameborder="no"
+      allow="autoplay; encrypted-media"
+      loading="lazy"
+      src="<?php echo esc_url(locutora_soundcloud_embed_url($hero_sc_url, false)); ?>">
+    </iframe>
   </div>
   <?php endif; ?>
 </section>
