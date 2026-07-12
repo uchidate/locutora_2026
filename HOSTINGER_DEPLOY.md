@@ -6,10 +6,10 @@ conta compartilhada ou o `wp-config.php`.
 
 ## Fluxo
 
-1. As alterações são verificadas, commitadas e enviadas para `main` localmente.
-2. O script `scripts/publish-hostinger-theme.sh` valida o tema e confirma que o
-   commit local já está presente em `origin/main`.
-3. O script gera e envia a branch `hostinger-theme`, contendo somente o conteúdo
+1. As alterações são verificadas e commitadas em `main` localmente.
+2. O script `scripts/publish-hostinger-theme.sh` valida o tema e envia `main` ao
+   GitHub, recusando históricos divergentes.
+3. Em seguida, o script gera e envia a branch `hostinger-theme`, contendo somente o conteúdo
    de `wp-theme-locutora`.
 4. A integração Git da Hostinger acompanha `hostinger-theme` e atualiza apenas
    a pasta do tema instalada no WordPress.
@@ -18,7 +18,7 @@ O projeto não usa GitHub Actions para build ou deploy.
 
 ## Publicação local
 
-Depois do commit e do push para `main`, execute:
+Depois do commit local em `main`, execute:
 
 ```bash
 scripts/publish-hostinger-theme.sh
@@ -28,7 +28,7 @@ O script interrompe a publicação quando:
 
 - existem mudanças locais ainda não commitadas;
 - o branch atual não é `main`;
-- `main` ainda não foi enviado para `origin/main`;
+- o histórico local diverge de `origin/main`;
 - os arquivos obrigatórios do tema estão ausentes;
 - algum arquivo PHP contém erro de sintaxe.
 

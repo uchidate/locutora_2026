@@ -17,8 +17,8 @@ fi
 
 git fetch --quiet origin main
 
-if [[ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]]; then
-  echo "Erro: envie o commit atual para origin/main antes de publicar." >&2
+if ! git merge-base --is-ancestor origin/main HEAD; then
+  echo "Erro: main divergiu de origin/main; atualize o histórico antes de publicar." >&2
   exit 1
 fi
 
@@ -29,6 +29,8 @@ grep -q "Theme Name:" wp-theme-locutora/style.css
 while IFS= read -r -d '' php_file; do
   php -l "$php_file" >/dev/null
 done < <(find wp-theme-locutora -type f -name '*.php' -print0)
+
+git push origin main
 
 deploy_branch="hostinger-theme"
 temporary_branch="hostinger-theme-local-build"
