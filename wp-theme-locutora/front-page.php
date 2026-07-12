@@ -51,7 +51,7 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 
 <!-- ══ APRESENTAÇÃO ══ -->
 <section class="legacy-intro" id="sobre">
-  <div class="legacy-intro__copy">
+  <div class="legacy-intro__copy reveal reveal--slide-top">
     <h2 class="section-title"><?php echo esc_html(get_theme_mod('locutora_intro_titulo', 'Locutora.com')); ?></h2>
     <h3>Locutora Profissional | Gravação de voz para publicidade, TV, rádio e URA</h3>
     <p><strong>Se você procura uma locutora profissional para dar mais credibilidade e impacto à comunicação da sua empresa, está no lugar certo.</strong></p>
@@ -77,16 +77,16 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
     <h3>Qualidade Profissional e Atendimento Nacional</h3>
     <p>Com estúdio próprio e equipamentos profissionais, realizo gravações de voz com alta qualidade técnica, garantindo excelente resultado para empresas que precisam de uma comunicação eficiente e profissional.</p>
     <p>Solicite um orçamento e descubra como uma voz humana e profissional pode valorizar sua marca, sua campanha e seus projetos de comunicação.</p>
-    <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link">Conheça</a>
+    <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link reveal reveal--slide-bottom">Conheça</a>
   </div>
-  <figure class="legacy-intro__portrait">
+  <figure class="legacy-intro__portrait reveal reveal--fade">
     <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/intro.png'); ?>" alt="Adriana Rosa, locutora profissional">
   </figure>
 </section>
 
 <!-- ══ SERVIÇOS ══ -->
 <section class="services" id="servicos">
-  <h2 class="section-title">Fazemos gravações para:</h2>
+  <h2 class="section-title reveal reveal--fade">Fazemos gravações para:</h2>
   <div class="services-grid">
     <?php
     $servicos_fallback = [
@@ -100,7 +100,7 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
       ? array_map(fn($item) => [$item->post_title, 'servico-mais.webp'], $servicos_posts)
       : $servicos_fallback;
     foreach (array_slice($servicos, 0, 4) as [$titulo, $icone]) : ?>
-      <a class="service-item" href="<?php echo esc_url(home_url('/servicos/')); ?>">
+      <a class="service-item reveal reveal--fade" href="<?php echo esc_url(home_url('/servicos/')); ?>">
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $icone); ?>" alt="">
         <h3 class="service-item__title"><?php echo esc_html($titulo); ?></h3>
       </a>
@@ -114,7 +114,7 @@ $cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
     <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/contato.mp4'); ?>" type="video/mp4">
   </video>
   <div class="cta-block__shade"></div>
-  <div class="cta-block__content">
+  <div class="cta-block__content reveal reveal--fade">
     <h2>Entre em contato<br>com Adriana Rosa</h2>
     <a href="<?php echo esc_url(home_url('/contato/')); ?>" class="btn-outline">Contato</a>
   </div>
