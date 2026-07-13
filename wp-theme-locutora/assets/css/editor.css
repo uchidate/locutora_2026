@@ -93,6 +93,25 @@
   white-space: nowrap;
 }
 
+.editor-styles-wrapper .locutora-editor-field--gallery {
+  grid-column: 1 / -1;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
 @media (max-width: 780px) {
   .editor-styles-wrapper .locutora-block-editor__fields {
     grid-template-columns: 1fr;

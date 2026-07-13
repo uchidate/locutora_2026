@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 4;
+const LOCUTORA_SITE_CONFIG_VERSION = 5;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -140,6 +140,34 @@ function locutora_seed_home_blocks(): void {
     ]);
 }
 
+function locutora_seed_internal_blocks(): void {
+    $pages = [
+        'sobre-nos' => [
+            '<!-- wp:locutora/internal-hero {"title":"Sobre nós:","variant":"sobre"} /-->',
+            '<!-- wp:locutora/about-story /-->',
+            '<!-- wp:locutora/about-bio /-->',
+            '<!-- wp:locutora/brands /-->',
+        ],
+        'servicos' => [
+            '<!-- wp:locutora/internal-hero {"title":"Áudios","variant":"services"} /-->',
+            '<!-- wp:locutora/audio-showcase /-->',
+        ],
+        'contato' => [
+            '<!-- wp:locutora/internal-hero {"title":"Contato","variant":"contact"} /-->',
+            '<!-- wp:locutora/contact-form /-->',
+        ],
+    ];
+
+    foreach ($pages as $slug => $blocks) {
+        $page = get_page_by_path($slug, OBJECT, 'page');
+        if (!$page instanceof WP_Post || trim((string) $page->post_content) !== '') {
+            continue;
+        }
+
+        wp_update_post(['ID' => $page->ID, 'post_content' => implode("\n\n", $blocks)]);
+    }
+}
+
 /* ─── Configuração inicial segura ao ativar o tema ─── */
 function locutora_ensure_structural_page(string $slug, string $title, string $template = 'default'): int {
     $page = get_page_by_path($slug, OBJECT, 'page');
@@ -208,6 +236,7 @@ function locutora_configure_site_on_activation(): void {
 
     locutora_seed_privacy_blocks();
     locutora_seed_home_blocks();
+    locutora_seed_internal_blocks();
 
     $sample_page = get_page_by_path('sample-page', OBJECT, 'page');
     if ($sample_page instanceof WP_Post && $sample_page->post_title === 'Sample Page') {
@@ -391,6 +420,100 @@ function locutora_render_contact_cta_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
+function locutora_render_internal_hero_block(array $attributes): string {
+    $title = $attributes['title'] ?? '';
+    $variant = in_array($attributes['variant'] ?? '', ['sobre', 'services', 'contact'], true) ? $attributes['variant'] : 'sobre';
+    $background_url = $attributes['backgroundUrl'] ?? '';
+    $style = $background_url ? ' style="background-image:url(' . esc_url($background_url) . ')"' : '';
+
+    return '<section class="internal-hero internal-hero--' . esc_attr($variant) . '"' . $style . '>'
+        . '<div class="internal-hero__inner"><h1>' . esc_html($title) . '</h1></div></section>';
+}
+
+function locutora_about_story_default_content(): string {
+    return '<h3>Missão</h3><p>Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.</p>'
+        . '<h3>Visão</h3><p>Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.</p>'
+        . '<h3>Valores</h3><p>Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.</p>';
+}
+
+function locutora_render_about_story_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Fundada em 2004, em<br>São Paulo.';
+    $content = $attributes['content'] ?? locutora_about_story_default_content();
+    $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/sobre-intro.png';
+    $image_alt = $attributes['imageAlt'] ?? 'Mesa de áudio de estúdio profissional';
+    ob_start(); ?>
+    <section class="about-story about-story--history"><div class="about-story__row">
+      <div class="about-story__copy reveal reveal--slide-top"><h2><?php echo wp_kses($title, ['br' => []]); ?></h2><?php echo wp_kses_post($content); ?></div>
+      <figure class="about-story__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
+    </div></section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_about_bio_default_content(): string {
+    return '<p>Adriana Rosa é uma locutora profissional brasileira, atriz, radialista e comunicadora de São Paulo, com mais de 20 anos de experiência em locução profissional para publicidade, rádio, televisão, internet e projetos corporativos. Reconhecida pela versatilidade e qualidade de sua voz, atende clientes de todo o Brasil e do mercado internacional.</p>'
+        . '<p>Formada em Produção Audiovisual e Teatro, Adriana também é radialista e possui pós-graduações em Influência Digital e Jornalismo Digital, unindo sólida formação acadêmica a ampla experiência prática no mercado da comunicação e do entretenimento.</p>'
+        . '<p>Especialista em locução em português do Brasil, atua em campanhas publicitárias, voice over, vídeos institucionais, treinamentos corporativos, e-learning, URA, conteúdos digitais e produções audiovisuais. Sua experiência permite entregar uma comunicação clara, envolvente e alinhada aos objetivos de cada marca.</p>'
+        . '<p>Como atriz profissional, Adriana Rosa oferece interpretações naturais, autênticas e versáteis, adaptando sua voz para diferentes estilos de locução: institucional, comercial, emocional, inspiracional, varejo, personagens e conteúdos corporativos.</p>'
+        . '<p>Sua trajetória inclui passagens por importantes emissoras de rádio, como a Rádio Trianon e a Novabrasil FM. Atualmente, é locutora da Classic Pan, pertencente ao Grupo Jovem Pan.</p>'
+        . '<p>Ao longo da carreira, já realizou trabalhos para grandes marcas nacionais e internacionais, entre elas: Amil, Santander, Bradesco, Globo, Prada, Apple, Danone, Banco da Amazônia, Mondial, Audi, Nespresso, Avon, Ticket, Netflix, Natura, Vivo, Volkswagen, GPA, 3M e McDonald\'s.</p>';
+}
+
+function locutora_render_about_bio_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Adriana Rosa';
+    $content = $attributes['content'] ?? locutora_about_bio_default_content();
+    $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/adriana-rosa-retrato.jpg';
+    $image_alt = $attributes['imageAlt'] ?? 'Retrato ilustrado de Adriana Rosa';
+    ob_start(); ?>
+    <section class="about-story about-story--bio"><div class="about-bio__row">
+      <figure class="about-bio__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
+      <div class="about-bio__copy reveal reveal--slide-bottom"><h2><?php echo esc_html($title); ?></h2><?php echo wp_kses_post($content); ?></div>
+    </div></section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_default_brand_urls(): array {
+    $names = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
+    return array_map(static fn(string $name): string => get_template_directory_uri() . '/assets/images/brands/' . $name . '.png', $names);
+}
+
+function locutora_render_brands_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Conheça as marcas que já trabalhou';
+    $images = !empty($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
+    ob_start(); ?>
+    <section class="brand-showcase"><h2><?php echo esc_html($title); ?></h2><div class="brand-grid">
+      <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url($url); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
+    </div></section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_render_audio_showcase_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Locutora para URA, comerciais, institucionais, tutoriais; e<br>voz padrão para rádio e TV.';
+    $soundcloud = $attributes['soundcloudUrl'] ?? 'https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Fusers%2F12694227&auto_play=false&show_artwork=true&color=ff0035';
+    $youtube = $attributes['youtubeUrl'] ?? 'https://www.youtube.com/embed/videoseries?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc';
+    ob_start(); ?>
+    <section class="audio-showcase"><h2><?php echo wp_kses($title, ['br' => []]); ?></h2><div class="audio-showcase__grid">
+      <iframe title="Demos de Adriana Rosa no SoundCloud" loading="lazy" allow="autoplay" src="<?php echo esc_url($soundcloud); ?>"></iframe>
+      <iframe title="Vídeos de locução institucional" loading="lazy" src="<?php echo esc_url($youtube); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div></section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_render_contact_form_block(array $attributes): string {
+    $button_label = $attributes['buttonLabel'] ?? 'Enviar mensagem';
+    ob_start(); ?>
+    <section class="contact-section"><form class="contact-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+      <input type="hidden" name="action" value="locutora_contact"><?php wp_nonce_field('locutora_contact', 'locutora_contact_nonce'); ?>
+      <label><?php echo esc_html($attributes['nameLabel'] ?? 'Nome *'); ?><input name="nome" type="text" required autocomplete="name"></label>
+      <label><?php echo esc_html($attributes['emailLabel'] ?? 'E-mail *'); ?><input name="email" type="email" required autocomplete="email"></label>
+      <label><?php echo esc_html($attributes['phoneLabel'] ?? 'Telefone'); ?><input name="telefone" type="tel" autocomplete="tel"></label>
+      <label><?php echo esc_html($attributes['subjectLabel'] ?? 'Assunto *'); ?><input name="assunto" type="text" required></label>
+      <label><?php echo esc_html($attributes['messageLabel'] ?? 'Mensagem'); ?><textarea name="mensagem" rows="7"></textarea></label>
+      <button type="submit"><?php echo esc_html($button_label); ?></button>
+      <?php if (isset($_GET['enviado'])) : ?><p class="contact-form__feedback" role="status"><?php echo $_GET['enviado'] === '1' ? 'Mensagem enviada com sucesso.' : 'Não foi possível enviar. Tente novamente.'; ?></p><?php endif; ?>
+    </form></section>
+    <?php return (string) ob_get_clean();
+}
+
 add_action('init', function (): void {
     $version = wp_get_theme()->get('Version');
     wp_register_script(
@@ -443,6 +566,58 @@ add_action('init', function (): void {
                 'buttonLabel' => ['type' => 'string', 'default' => 'Contato'],
                 'buttonUrl' => ['type' => 'string', 'default' => ''],
                 'videoUrl' => ['type' => 'string', 'default' => ''],
+            ],
+        ],
+        'locutora/internal-hero' => [
+            'render_callback' => 'locutora_render_internal_hero_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => ''],
+                'variant' => ['type' => 'string', 'default' => 'sobre'],
+                'backgroundUrl' => ['type' => 'string', 'default' => ''],
+            ],
+        ],
+        'locutora/about-story' => [
+            'render_callback' => 'locutora_render_about_story_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Fundada em 2004, em<br>São Paulo.'],
+                'content' => ['type' => 'string', 'default' => locutora_about_story_default_content()],
+                'imageUrl' => ['type' => 'string', 'default' => ''],
+                'imageAlt' => ['type' => 'string', 'default' => 'Mesa de áudio de estúdio profissional'],
+            ],
+        ],
+        'locutora/about-bio' => [
+            'render_callback' => 'locutora_render_about_bio_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Adriana Rosa'],
+                'content' => ['type' => 'string', 'default' => locutora_about_bio_default_content()],
+                'imageUrl' => ['type' => 'string', 'default' => ''],
+                'imageAlt' => ['type' => 'string', 'default' => 'Retrato ilustrado de Adriana Rosa'],
+            ],
+        ],
+        'locutora/brands' => [
+            'render_callback' => 'locutora_render_brands_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Conheça as marcas que já trabalhou'],
+                'images' => ['type' => 'array', 'default' => []],
+            ],
+        ],
+        'locutora/audio-showcase' => [
+            'render_callback' => 'locutora_render_audio_showcase_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Locutora para URA, comerciais, institucionais, tutoriais; e<br>voz padrão para rádio e TV.'],
+                'soundcloudUrl' => ['type' => 'string', 'default' => 'https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Fusers%2F12694227&auto_play=false&show_artwork=true&color=ff0035'],
+                'youtubeUrl' => ['type' => 'string', 'default' => 'https://www.youtube.com/embed/videoseries?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc'],
+            ],
+        ],
+        'locutora/contact-form' => [
+            'render_callback' => 'locutora_render_contact_form_block',
+            'attributes' => [
+                'nameLabel' => ['type' => 'string', 'default' => 'Nome *'],
+                'emailLabel' => ['type' => 'string', 'default' => 'E-mail *'],
+                'phoneLabel' => ['type' => 'string', 'default' => 'Telefone'],
+                'subjectLabel' => ['type' => 'string', 'default' => 'Assunto *'],
+                'messageLabel' => ['type' => 'string', 'default' => 'Mensagem'],
+                'buttonLabel' => ['type' => 'string', 'default' => 'Enviar mensagem'],
             ],
         ],
     ];
