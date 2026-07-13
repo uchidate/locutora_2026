@@ -19,12 +19,32 @@
   const __ = i18n.__;
 
   function fieldControl(field, props, compact) {
-    const value = props.attributes[field.name] || '';
+    const value = props.attributes[field.name] || (field.gallery ? [] : '');
     const update = function (nextValue) {
       const attributes = {};
       attributes[field.name] = nextValue;
       props.setAttributes(attributes);
     };
+
+    if (field.gallery) {
+      return el(
+        BaseControl,
+        { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--gallery' },
+        value.length ? el('div', { className: 'locutora-editor-gallery' }, value.map(function (url, index) {
+          return el('img', { key: url + index, src: url, alt: '' });
+        })) : el('p', null, __('As imagens padrão do tema estão em uso.', 'locutora')),
+        el(MediaUploadCheck, null,
+          el(MediaUpload, {
+            allowedTypes: ['image'],
+            multiple: true,
+            gallery: true,
+            onSelect: function (media) { update(media.map(function (item) { return item.url; })); },
+            render: function (mediaProps) { return el(Button, { variant: 'secondary', onClick: mediaProps.open }, __('Selecionar logotipos', 'locutora')); },
+          })
+        ),
+        value.length ? el(Button, { variant: 'tertiary', isDestructive: true, onClick: function () { update([]); } }, __('Usar logotipos padrão', 'locutora')) : null
+      );
+    }
 
     if (field.media) {
       return el(
@@ -151,6 +171,69 @@
         { name: 'buttonLabel', label: 'Texto do botão' },
         { name: 'buttonUrl', label: 'Destino do botão' },
         { name: 'videoUrl', label: 'Vídeo de fundo', media: true, allowedTypes: ['video'] },
+      ],
+    },
+    {
+      name: 'locutora/internal-hero',
+      title: 'Locutora — Cabeçalho interno',
+      icon: 'cover-image',
+      fields: [
+        { name: 'title', label: 'Título da página' },
+        { name: 'backgroundUrl', label: 'Imagem de fundo', media: true },
+      ],
+    },
+    {
+      name: 'locutora/about-story',
+      title: 'Locutora — História',
+      icon: 'book-alt',
+      fields: [
+        { name: 'title', label: 'Título' },
+        { name: 'content', label: 'Missão, visão e valores', richtext: true },
+        { name: 'imageUrl', label: 'Imagem do estúdio', media: true },
+        { name: 'imageAlt', label: 'Descrição da imagem' },
+      ],
+    },
+    {
+      name: 'locutora/about-bio',
+      title: 'Locutora — Biografia',
+      icon: 'admin-users',
+      fields: [
+        { name: 'title', label: 'Nome' },
+        { name: 'content', label: 'Biografia', richtext: true },
+        { name: 'imageUrl', label: 'Retrato', media: true },
+        { name: 'imageAlt', label: 'Descrição do retrato' },
+      ],
+    },
+    {
+      name: 'locutora/brands',
+      title: 'Locutora — Marcas',
+      icon: 'grid-view',
+      fields: [
+        { name: 'title', label: 'Título' },
+        { name: 'images', label: 'Logotipos', gallery: true },
+      ],
+    },
+    {
+      name: 'locutora/audio-showcase',
+      title: 'Locutora — Áudios e vídeos',
+      icon: 'playlist-audio',
+      fields: [
+        { name: 'title', label: 'Título' },
+        { name: 'soundcloudUrl', label: 'URL incorporada do SoundCloud' },
+        { name: 'youtubeUrl', label: 'URL incorporada do YouTube' },
+      ],
+    },
+    {
+      name: 'locutora/contact-form',
+      title: 'Locutora — Formulário de contato',
+      icon: 'feedback',
+      fields: [
+        { name: 'nameLabel', label: 'Rótulo: nome' },
+        { name: 'emailLabel', label: 'Rótulo: e-mail' },
+        { name: 'phoneLabel', label: 'Rótulo: telefone' },
+        { name: 'subjectLabel', label: 'Rótulo: assunto' },
+        { name: 'messageLabel', label: 'Rótulo: mensagem' },
+        { name: 'buttonLabel', label: 'Texto do botão' },
       ],
     },
   ];

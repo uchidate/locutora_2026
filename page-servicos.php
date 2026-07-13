@@ -1,5 +1,19 @@
 <?php get_header(); ?>
 
+<?php
+if (have_posts()) {
+  the_post();
+  $page_blocks = trim((string) get_the_content());
+  if ($page_blocks !== '' && has_blocks($page_blocks)) {
+    echo '<main class="internal-page internal-page--services">';
+    echo apply_filters('the_content', $page_blocks);
+    echo '</main>';
+    get_footer();
+    return;
+  }
+}
+?>
+
 <main class="internal-page internal-page--services">
   <section class="internal-hero internal-hero--services">
     <div class="internal-hero__inner"><h1>Áudios</h1></div>
