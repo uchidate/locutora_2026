@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 12;
+const LOCUTORA_SITE_CONFIG_VERSION = 13;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -296,22 +296,27 @@ function locutora_apply_rank_math_metadata(): void {
         'home' => [
             'title' => 'Home - Locutora',
             'description' => 'Fundada em 2004 pela radialista, locutora profissional e atriz Adriana Rosa, a Locutora.com oferece serviços de locução profissional e voice over em português.',
+            'keywords' => 'locutora profissional, locução profissional, voice over em português, gravação de voz',
         ],
         'sobre-nos' => [
             'title' => 'Locutora Adriana Rosa - Locutora',
             'description' => 'Conheça Adriana Rosa, locutora profissional especializada em URA, comerciais e institucionais. Saiba mais sobre sua experiência e trabalhos.',
+            'keywords' => 'Adriana Rosa, locutora profissional, atriz, radialista',
         ],
         'servicos' => [
             'title' => 'Áudios - Locutora',
             'description' => 'Locutora profissional Adriana Rosa. Ouça alguns trabalhos.',
+            'keywords' => 'locutora, locutora para URA, espera telefônica, gravação de spot, gravação de audiobook',
         ],
         'contato' => [
             'title' => 'Contato - Locutora',
             'description' => 'Entre em contato com Locutora.com - Adriana Rosa (11) 98440-4171.',
+            'keywords' => 'contato Locutora.com, Adriana Rosa, orçamento de locução',
         ],
         'politica-de-privacidade' => [
             'title' => 'Política de privacidade - Locutora',
             'description' => 'Política de privacidade e proteção de dados da Locutora.com.',
+            'keywords' => 'política de privacidade, proteção de dados',
         ],
     ];
 
@@ -322,6 +327,7 @@ function locutora_apply_rank_math_metadata(): void {
         }
         update_post_meta($page->ID, 'rank_math_title', $values['title']);
         update_post_meta($page->ID, 'rank_math_description', $values['description']);
+        update_post_meta($page->ID, 'rank_math_focus_keyword', $values['keywords']);
         delete_post_meta($page->ID, '_yoast_wpseo_title');
         delete_post_meta($page->ID, '_yoast_wpseo_metadesc');
     }
@@ -336,10 +342,16 @@ function locutora_configure_rank_math_identity(): void {
     $titles['social_url_instagram'] = 'https://www.instagram.com/adriana.rosa_s';
     $titles['social_url_linkedin'] = 'https://www.linkedin.com/in/adrianarosa-voiceover/';
     $titles['social_url_youtube'] = 'https://www.youtube.com/adrianalocutoracom';
+    $titles['disable_author_archives'] = 'on';
     update_option('rank-math-options-titles', $titles);
 
     $modules = (array) get_option('rank_math_modules', []);
-    update_option('rank_math_modules', array_values(array_unique(array_merge($modules, ['sitemap', 'schema']))));
+    update_option('rank_math_modules', array_values(array_unique(array_merge($modules, ['sitemap', 'schema', 'local-seo']))));
+
+    $sitemap = (array) get_option('rank-math-options-sitemap', []);
+    $sitemap['authors_sitemap'] = 'off';
+    $sitemap['pt_page_sitemap'] = 'on';
+    update_option('rank-math-options-sitemap', $sitemap);
 }
 
 function locutora_install_rank_math_seo(): void {
@@ -422,6 +434,51 @@ add_filter('rank_math/opengraph/facebook/image', function ($image) {
 add_filter('rank_math/opengraph/twitter/image', function ($image) {
     return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
 });
+
+add_filter('robots_txt', function (string $output): string {
+    if (locutora_is_temporary_environment()) {
+        return "User-agent: *\nDisallow: /\n";
+    }
+    return $output;
+}, 99);
+
+add_action('wp_head', function (): void {
+    if (!defined('RANK_MATH_VERSION')) {
+        return;
+    }
+    $schema = [
+        '@context' => 'https://schema.org',
+        '@graph' => [
+            [
+                '@type' => 'WebSite',
+                '@id' => home_url('/#website'),
+                'url' => home_url('/'),
+                'name' => 'Locutora.com',
+                'alternateName' => 'Adriana Rosa',
+                'inLanguage' => 'pt-BR',
+            ],
+            [
+                '@type' => ['Organization', 'ProfessionalService'],
+                '@id' => home_url('/#organization'),
+                'name' => 'Locutora.com',
+                'url' => home_url('/'),
+                'foundingDate' => '2004',
+                'founder' => ['@type' => 'Person', 'name' => 'Adriana Rosa'],
+                'logo' => ['@type' => 'ImageObject', 'url' => get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png'],
+                'image' => get_template_directory_uri() . '/assets/images/intro.png',
+                'email' => 'adrianarosa@locutora.com',
+                'telephone' => '+55 11 98440-4171',
+                'areaServed' => ['@type' => 'Country', 'name' => 'Brasil'],
+                'sameAs' => [
+                    'https://www.linkedin.com/in/adrianarosa-voiceover/',
+                    'https://www.instagram.com/adriana.rosa_s',
+                    'https://www.youtube.com/adrianalocutoracom',
+                ],
+            ],
+        ],
+    ];
+    ?><script type="application/ld+json" id="locutora-rank-math-schema"><?php echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script><?php
+}, 30);
 
 add_filter('wp_robots', function (array $robots): array {
     if (locutora_is_temporary_environment()) {
