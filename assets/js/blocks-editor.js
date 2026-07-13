@@ -1,10 +1,15 @@
 (function (blocks, blockEditor, components, element, i18n, serverSideRender) {
   const el = element.createElement;
   const Fragment = element.Fragment;
+  const useState = element.useState;
+  const BlockControls = blockEditor.BlockControls;
   const InspectorControls = blockEditor.InspectorControls;
   const PanelBody = components.PanelBody;
   const BaseControl = components.BaseControl;
   const Button = components.Button;
+  const Notice = components.Notice;
+  const ToolbarButton = components.ToolbarButton;
+  const ToolbarGroup = components.ToolbarGroup;
   const TextControl = components.TextControl;
   const TextareaControl = components.TextareaControl;
   const RichText = blockEditor.RichText;
@@ -25,18 +30,20 @@
       return el(
         BaseControl,
         { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--media' },
-        value ? el('img', { src: value, alt: '', className: 'locutora-editor-media-preview' }) : null,
+        value && (!field.allowedTypes || field.allowedTypes.indexOf('image') !== -1)
+          ? el('img', { src: value, alt: '', className: 'locutora-editor-media-preview' })
+          : value ? el('code', { className: 'locutora-editor-media-url' }, value) : null,
         el(MediaUploadCheck, null,
           el(MediaUpload, {
-            allowedTypes: ['image'],
+            allowedTypes: field.allowedTypes || ['image'],
             value: 0,
             onSelect: function (media) { update(media.url || ''); },
             render: function (mediaProps) {
-              return el(Button, { variant: 'secondary', onClick: mediaProps.open }, value ? __('Trocar imagem', 'locutora') : __('Escolher imagem', 'locutora'));
+              return el(Button, { variant: 'secondary', onClick: mediaProps.open }, value ? __('Trocar arquivo', 'locutora') : __('Escolher arquivo', 'locutora'));
             },
           })
         ),
-        value ? el(Button, { variant: 'tertiary', isDestructive: true, onClick: function () { update(''); } }, __('Usar imagem padrão', 'locutora')) : null
+        value ? el(Button, { variant: 'tertiary', isDestructive: true, onClick: function () { update(''); } }, __('Usar arquivo padrão', 'locutora')) : null
       );
     }
 
@@ -66,17 +73,27 @@
 
   function editor(fields, title) {
     return function Edit(props) {
+      const state = useState('edit');
+      const mode = state[0];
+      const setMode = state[1];
       const controls = fields.map(function (field) { return fieldControl(field, props, false); });
       const sidebarControls = fields.filter(function (field) { return !field.richtext; }).map(function (field) { return fieldControl(field, props, true); });
 
       return el(
         Fragment,
         null,
+        el(BlockControls, null,
+          el(ToolbarGroup, null,
+            el(ToolbarButton, { icon: 'edit', label: __('Editar conteúdo', 'locutora'), isPressed: mode === 'edit', onClick: function () { setMode('edit'); } }),
+            el(ToolbarButton, { icon: 'visibility', label: __('Ver prévia', 'locutora'), isPressed: mode === 'preview', onClick: function () { setMode('preview'); } })
+          )
+        ),
         el(InspectorControls, null, el(PanelBody, { title: __('Conteúdo da seção', 'locutora'), initialOpen: true }, sidebarControls)),
-        props.isSelected ? el(
+        props.isSelected && mode === 'edit' ? el(
           'div',
           { className: 'locutora-block-editor' },
           el('h3', { className: 'locutora-block-editor__title' }, __('Editar: ', 'locutora') + title),
+          el(Notice, { status: 'info', isDismissible: false }, __('Altere os campos abaixo e use Atualizar para publicar.', 'locutora')),
           el('div', { className: 'locutora-block-editor__fields' }, controls)
         ) : null,
         el(ServerSideRender, { block: props.name, attributes: props.attributes })
@@ -103,7 +120,9 @@
         { name: 'title', label: 'Título' },
         { name: 'content', label: 'Texto da apresentação', richtext: true },
         { name: 'buttonLabel', label: 'Texto do botão' },
+        { name: 'buttonUrl', label: 'Destino do botão' },
         { name: 'portraitUrl', label: 'Foto da locutora', media: true },
+        { name: 'portraitAlt', label: 'Descrição da foto' },
       ],
     },
     {
@@ -116,6 +135,7 @@
         { name: 'item2', label: 'Serviço 2' },
         { name: 'item3', label: 'Serviço 3' },
         { name: 'item4', label: 'Serviço 4' },
+        { name: 'servicesUrl', label: 'Destino dos serviços' },
         { name: 'icon1Url', label: 'Ícone do serviço 1', media: true },
         { name: 'icon2Url', label: 'Ícone do serviço 2', media: true },
         { name: 'icon3Url', label: 'Ícone do serviço 3', media: true },
@@ -129,6 +149,8 @@
       fields: [
         { name: 'heading', label: 'Chamada', multiline: true, rows: 3 },
         { name: 'buttonLabel', label: 'Texto do botão' },
+        { name: 'buttonUrl', label: 'Destino do botão' },
+        { name: 'videoUrl', label: 'Vídeo de fundo', media: true, allowedTypes: ['video'] },
       ],
     },
   ];
