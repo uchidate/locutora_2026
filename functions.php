@@ -434,6 +434,65 @@ add_action('init', function (): void {
     }
 }, 100);
 
+function locutora_requested_plugins(): array {
+    return [
+        ['slug' => 'litespeed-cache', 'file' => 'litespeed-cache/litespeed-cache.php', 'label' => 'LiteSpeed Cache'],
+        ['slug' => 'wp-mail-smtp', 'file' => 'wp-mail-smtp/wp_mail_smtp.php', 'label' => 'WP Mail SMTP'],
+        ['slug' => 'updraftplus', 'file' => 'updraftplus/updraftplus.php', 'label' => 'UpdraftPlus'],
+        ['slug' => 'two-factor', 'file' => 'two-factor/two-factor.php', 'label' => 'Two Factor'],
+        ['slug' => 'advanced-custom-fields', 'file' => 'advanced-custom-fields/acf.php', 'label' => 'Advanced Custom Fields'],
+        ['slug' => 'enable-media-replace', 'file' => 'enable-media-replace/enable-media-replace.php', 'label' => 'Enable Media Replace'],
+    ];
+}
+
+function locutora_install_requested_plugin(string $slug, string $plugin_file): void {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+    $statuses = (array) get_option('locutora_requested_plugin_statuses', []);
+    if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_file)) {
+        $api = plugins_api('plugin_information', [
+            'slug' => $slug,
+            'fields' => ['sections' => false],
+        ]);
+        if (is_wp_error($api) || empty($api->download_link)) {
+            $statuses[$slug] = 'erro-api';
+            update_option('locutora_requested_plugin_statuses', $statuses, false);
+            return;
+        }
+
+        $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
+        $installed = $upgrader->install($api->download_link);
+        if (is_wp_error($installed) || $installed !== true) {
+            $statuses[$slug] = 'erro-instalacao';
+            update_option('locutora_requested_plugin_statuses', $statuses, false);
+            return;
+        }
+    }
+
+    $activated = activate_plugin($plugin_file);
+    if (is_wp_error($activated) || !is_plugin_active($plugin_file)) {
+        $statuses[$slug] = 'erro-ativacao';
+    } else {
+        $statuses[$slug] = 'active';
+    }
+    update_option('locutora_requested_plugin_statuses', $statuses, false);
+}
+add_action('locutora_install_requested_plugin', 'locutora_install_requested_plugin', 10, 2);
+
+add_action('init', function (): void {
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    foreach (locutora_requested_plugins() as $plugin) {
+        $args = [$plugin['slug'], $plugin['file']];
+        if (!is_plugin_active($plugin['file']) && !wp_next_scheduled('locutora_install_requested_plugin', $args)) {
+            wp_schedule_single_event(time() + 5, 'locutora_install_requested_plugin', $args);
+            break;
+        }
+    }
+}, 101);
+
 add_filter('rank_math/opengraph/facebook/image', function ($image) {
     return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
 });
