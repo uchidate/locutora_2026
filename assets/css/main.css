@@ -465,18 +465,6 @@ button { cursor: pointer; }
   margin: 0;
 }
 
-/* ─── Orçamento ─── */
-.page-orcamento {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 64px 56px;
-}
-.orcamento-intro {
-  font: 400 17px/1.7 'Hanken Grotesk';
-  color: var(--muted);
-  margin: 0 0 48px;
-}
-
 /* CF7 dark override */
 .wpcf7 input[type="text"],
 .wpcf7 input[type="email"],

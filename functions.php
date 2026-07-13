@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 7;
+const LOCUTORA_SITE_CONFIG_VERSION = 8;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -156,11 +156,6 @@ function locutora_seed_internal_blocks(): void {
             '<!-- wp:locutora/internal-hero {"title":"Contato","variant":"contact"} /-->',
             '<!-- wp:locutora/contact-form /-->',
         ],
-        'orcamento' => [
-            '<!-- wp:locutora/budget-hero /-->',
-            '<!-- wp:locutora/budget-intro /-->',
-            '<!-- wp:locutora/contact-form /-->',
-        ],
     ];
 
     foreach ($pages as $slug => $blocks) {
@@ -170,22 +165,6 @@ function locutora_seed_internal_blocks(): void {
         }
 
         $current_content = trim((string) $page->post_content);
-        if ($slug === 'orcamento' && preg_match('/^\[contact-form-7\b[^\]]+\]$/', $current_content)) {
-            array_pop($blocks);
-            $blocks[] = "<!-- wp:shortcode -->\n" . $current_content . "\n<!-- /wp:shortcode -->";
-            $current_content = '';
-        }
-
-        if ($slug === 'orcamento' && substr_count($current_content, '<!-- wp:') === 2
-            && str_contains($current_content, '<!-- wp:locutora/budget-hero')
-            && str_contains($current_content, '<!-- wp:locutora/budget-intro')) {
-            wp_update_post([
-                'ID' => $page->ID,
-                'post_content' => $current_content . "\n\n<!-- wp:locutora/contact-form /-->",
-            ]);
-            continue;
-        }
-
         if ($current_content !== '') {
             continue;
         }
@@ -232,7 +211,6 @@ function locutora_configure_site_on_activation(): void {
     locutora_ensure_structural_page('sobre-nos', 'Sobre nós', 'page-sobre-nos.php');
     locutora_ensure_structural_page('servicos', 'Áudios', 'page-servicos.php');
     locutora_ensure_structural_page('contato', 'Contato', 'page-contato.php');
-    locutora_ensure_structural_page('orcamento', 'Orçamento', 'page-orcamento.php');
 
     update_option('blogname', 'Adriana Rosa');
     update_option('blogdescription', 'Locutora profissional e gravações de voz');
@@ -263,6 +241,20 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_privacy_blocks();
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
+
+    $english_privacy = get_post(3);
+    if ($english_privacy instanceof WP_Post
+        && $english_privacy->post_type === 'page'
+        && $english_privacy->post_title === 'Privacy Policy') {
+        wp_trash_post($english_privacy->ID);
+    }
+
+    $budget_page = get_post(10);
+    if ($budget_page instanceof WP_Post
+        && $budget_page->post_type === 'page'
+        && $budget_page->post_name === 'orcamento') {
+        wp_trash_post($budget_page->ID);
+    }
 
     $sample_page = get_page_by_path('sample-page', OBJECT, 'page');
     if ($sample_page instanceof WP_Post && $sample_page->post_title === 'Sample Page') {
@@ -540,20 +532,6 @@ function locutora_render_contact_form_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
-function locutora_render_budget_hero_block(array $attributes): string {
-    $eyebrow = $attributes['eyebrow'] ?? 'Orçamento';
-    $title = $attributes['title'] ?? 'Vamos trabalhar juntos?';
-    $subtitle = $attributes['subtitle'] ?? 'Preencha o formulário abaixo e responderei em até 24h com proposta e prazo.';
-    return '<section class="page-hero"><p class="hero__eyebrow">' . esc_html($eyebrow) . '</p>'
-        . '<h1 class="page-hero__title serif">' . esc_html($title) . '</h1>'
-        . '<p class="page-hero__sub">' . esc_html($subtitle) . '</p></section>';
-}
-
-function locutora_render_budget_intro_block(array $attributes): string {
-    $content = $attributes['content'] ?? 'Quanto mais detalhar o projeto — tipo, duração, tom e prazo —, mais preciso será o orçamento. Mas se ainda estiver na fase de levantamento, sem problema: me conta a ideia e conversamos.';
-    return '<div class="page-orcamento"><p class="orcamento-intro">' . wp_kses_post($content) . '</p></div>';
-}
-
 add_action('init', function (): void {
     $version = wp_get_theme()->get('Version');
     wp_register_script(
@@ -658,20 +636,6 @@ add_action('init', function (): void {
                 'subjectLabel' => ['type' => 'string', 'default' => 'Assunto *'],
                 'messageLabel' => ['type' => 'string', 'default' => 'Mensagem'],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Enviar mensagem'],
-            ],
-        ],
-        'locutora/budget-hero' => [
-            'render_callback' => 'locutora_render_budget_hero_block',
-            'attributes' => [
-                'eyebrow' => ['type' => 'string', 'default' => 'Orçamento'],
-                'title' => ['type' => 'string', 'default' => 'Vamos trabalhar juntos?'],
-                'subtitle' => ['type' => 'string', 'default' => 'Preencha o formulário abaixo e responderei em até 24h com proposta e prazo.'],
-            ],
-        ],
-        'locutora/budget-intro' => [
-            'render_callback' => 'locutora_render_budget_intro_block',
-            'attributes' => [
-                'content' => ['type' => 'string', 'default' => 'Quanto mais detalhar o projeto — tipo, duração, tom e prazo —, mais preciso será o orçamento. Mas se ainda estiver na fase de levantamento, sem problema: me conta a ideia e conversamos.'],
             ],
         ],
     ];

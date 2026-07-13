@@ -27,7 +27,6 @@ $hero_dur = function_exists('get_field')
   ? (get_field('hero_duracao', 'option') ?? '0:48')
   : get_option('locutora_hero_duracao', '0:48');
 
-$cta_url = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
 ?>
 
 <!-- ══ HERO ══ -->
