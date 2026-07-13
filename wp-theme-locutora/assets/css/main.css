@@ -844,6 +844,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .site-footer__brand img { width: 200px; }
 .site-footer__brand { position: relative; display: block; width: 200px; }
 .site-footer__brand span { position: absolute; top: 73px; left: 0; width: 100%; color: #111; font-size: 27px; font-weight: 300; line-height: 1; text-align: center; text-transform: uppercase; }
+.site-footer__brand::after { content: ''; position: absolute; top: 108px; left: 0; width: 100%; height: 1px; background: #111; }
 .site-footer__column h2 { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #ddd; font-size: 28px; }
 .site-footer__column a { font-size: 16px; }
 .site-footer__legal { padding-top: 20px; padding-bottom: 20px; font-size: 15px; }
@@ -1060,6 +1061,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .site-footer a:hover { color: #b87100; }
 .site-footer__main { display: grid; grid-template-columns: minmax(180px, .9fr) 1.2fr .8fr; gap: clamp(40px, 8vw, 120px); align-items: start; padding: 72px max(30px, calc((100vw - 1200px) / 2)) 56px; }
 .site-footer__brand img { width: 170px; height: auto; }
+.site-footer__brand { align-self: center; justify-self: center; }
 .site-footer__column { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .site-footer__column h2 { margin: 0 0 12px; color: #4b4b4b; font-size: 22px; font-weight: 500; }
 .site-footer__column a { font-size: 13px; }
@@ -1094,6 +1096,8 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .legacy-intro { padding-top: 110px; }
   .site-footer__main { grid-template-columns: 1fr; padding-top: 52px; }
   .site-footer__brand { grid-column: auto; }
+  .site-footer__item { gap: 14px; font-size: 16px; }
+  .site-footer__back-to-top { align-self: flex-start; }
 }
 
 /* Correções finais de precedência: este bloco deve permanecer no fim do arquivo. */

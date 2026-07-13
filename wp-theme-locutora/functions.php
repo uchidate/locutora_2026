@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 9;
+const LOCUTORA_SITE_CONFIG_VERSION = 10;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -212,7 +212,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_ensure_structural_page('servicos', 'Áudios', 'page-servicos.php');
     locutora_ensure_structural_page('contato', 'Contato', 'page-contato.php');
 
-    update_option('blogname', 'Adriana Rosa');
+    update_option('blogname', 'Locutora.com');
     update_option('blogdescription', 'Locutora profissional e gravações de voz');
     update_option('timezone_string', 'America/Sao_Paulo');
     update_option('date_format', 'd/m/Y');
@@ -242,6 +242,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
     locutora_apply_yoast_metadata();
+    locutora_configure_yoast_identity();
 
     $english_privacy = get_post(3);
     if ($english_privacy instanceof WP_Post
@@ -324,6 +325,23 @@ function locutora_apply_yoast_metadata(): void {
     }
 }
 
+function locutora_configure_yoast_identity(): void {
+    $titles = (array) get_option('wpseo_titles', []);
+    $titles['company_or_person'] = 'company';
+    $titles['company_name'] = 'Locutora.com';
+    $titles['website_name'] = 'Locutora.com';
+    $titles['alternate_website_name'] = 'Adriana Rosa';
+    update_option('wpseo_titles', $titles);
+
+    $social = (array) get_option('wpseo_social', []);
+    $social['other_social_urls'] = [
+        'https://www.linkedin.com/in/adrianarosa-voiceover/',
+        'https://www.instagram.com/adriana.rosa_s',
+        'https://www.youtube.com/adrianalocutoracom',
+    ];
+    update_option('wpseo_social', $social);
+}
+
 function locutora_install_yoast_seo(): void {
     if (get_option('locutora_yoast_install_status') === 'active') {
         return;
@@ -360,6 +378,7 @@ function locutora_install_yoast_seo(): void {
     }
 
     locutora_apply_yoast_metadata();
+    locutora_configure_yoast_identity();
     update_option('locutora_yoast_install_status', 'active');
 }
 add_action('locutora_install_yoast_seo', 'locutora_install_yoast_seo');
@@ -377,6 +396,18 @@ add_filter('wpseo_opengraph_image', function ($image) {
 
 add_filter('wpseo_twitter_image', function ($image) {
     return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
+});
+
+add_action('wpseo_add_opengraph_images', function ($images): void {
+    if (is_object($images) && method_exists($images, 'add_image')) {
+        $images->add_image(get_template_directory_uri() . '/assets/images/intro.png');
+    }
+});
+
+add_action('wpseo_add_twitter_images', function ($images): void {
+    if (is_object($images) && method_exists($images, 'add_image')) {
+        $images->add_image(get_template_directory_uri() . '/assets/images/intro.png');
+    }
 });
 
 add_filter('wp_robots', function (array $robots): array {
