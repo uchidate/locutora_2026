@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 14;
+const LOCUTORA_SITE_CONFIG_VERSION = 15;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -269,6 +269,8 @@ function locutora_configure_site_on_activation(): void {
     }
 
     update_option('locutora_site_config_version', LOCUTORA_SITE_CONFIG_VERSION, false);
+    update_option('locutora_pending_cache_purge', 1, false);
+    do_action('litespeed_purge_all');
     flush_rewrite_rules(false);
 }
 add_action('after_switch_theme', 'locutora_configure_site_on_activation');
@@ -498,6 +500,11 @@ add_filter('wp_robots', function (array $robots): array {
 add_action('send_headers', function (): void {
     if (locutora_is_temporary_environment() && !headers_sent()) {
         header('X-Robots-Tag: noindex, nofollow', true);
+    }
+    if ((int) get_option('locutora_pending_cache_purge', 0) === 1 && !headers_sent()) {
+        header('X-LiteSpeed-Purge: *', true);
+        header('Cache-Control: no-cache, no-store, must-revalidate', true);
+        delete_option('locutora_pending_cache_purge');
     }
 });
 
