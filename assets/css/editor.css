@@ -1,32 +1,52 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 
+/*
+ * O layout dos blocos Locutora vem de main.css, o mesmo arquivo do front-end.
+ * Este arquivo cuida somente do enquadramento dentro do Gutenberg.
+ */
 .editor-styles-wrapper {
   color: #555;
-  background: #fff;
+  background: #ececec;
   font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 15px;
-  line-height: 1.7;
 }
 
-.editor-styles-wrapper .wp-block {
+.editor-styles-wrapper .is-root-container {
+  padding-bottom: 80px;
+}
+
+.editor-styles-wrapper .wp-block[data-type^='locutora/'] {
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.editor-styles-wrapper .wp-block[data-type^='locutora/'] > .wp-block-server-side-render {
+  margin: 0;
+}
+
+.editor-styles-wrapper .wp-block[data-type^='locutora/'] .wp-block-server-side-render__response {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* No editor o conteúdo precisa permanecer visível sem depender do JavaScript do front. */
+.editor-styles-wrapper .reveal,
+.editor-styles-wrapper .hero__eyebrow,
+.editor-styles-wrapper .hero__title,
+.editor-styles-wrapper .hero__sub {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Os blocos nativos da política continuam legíveis fora das seções da home. */
+.editor-styles-wrapper .wp-block:not([data-type^='locutora/']) {
   max-width: 1200px;
 }
 
-.editor-styles-wrapper h1,
-.editor-styles-wrapper h2,
-.editor-styles-wrapper h3,
-.editor-styles-wrapper strong {
-  color: #333;
-}
-
-.editor-styles-wrapper .wp-block-list {
-  padding-left: 28px;
-}
-
-.editor-styles-wrapper .wp-block-list li {
-  margin-bottom: 8px;
-}
-
-.editor-styles-wrapper a {
+.editor-styles-wrapper .wp-block:not([data-type^='locutora/']) a {
   color: #9f6506;
 }
