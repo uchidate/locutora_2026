@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 13;
+const LOCUTORA_SITE_CONFIG_VERSION = 14;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -350,8 +350,13 @@ function locutora_configure_rank_math_identity(): void {
 
     $sitemap = (array) get_option('rank-math-options-sitemap', []);
     $sitemap['authors_sitemap'] = 'off';
+    $sitemap['authors_html_sitemap'] = 'off';
     $sitemap['pt_page_sitemap'] = 'on';
     update_option('rank-math-options-sitemap', $sitemap);
+
+    if (class_exists('RankMath\\Sitemap\\Cache')) {
+        \RankMath\Sitemap\Cache::invalidate_storage();
+    }
 }
 
 function locutora_install_rank_math_seo(): void {
