@@ -57,7 +57,7 @@ if (have_posts()) {
       <?php
       $brands = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
       foreach ($brands as $brand) : ?>
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/brands/' . $brand . '.png'); ?>" alt="<?php echo esc_attr($brand); ?>" loading="lazy">
+        <img src="<?php echo esc_url(locutora_brand_asset_url(get_template_directory_uri() . '/assets/images/brands/' . $brand . '.png')); ?>" alt="<?php echo esc_attr($brand); ?>" loading="lazy">
       <?php endforeach; ?>
     </div>
   </section>
