@@ -1,6 +1,19 @@
 <?php get_header(); ?>
 
 <?php
+if (have_posts()) {
+  the_post();
+  $home_blocks = trim((string) get_the_content());
+
+  if ($home_blocks !== '' && has_blocks($home_blocks)) {
+    echo apply_filters('the_content', $home_blocks);
+    get_footer();
+    return;
+  }
+}
+?>
+
+<?php
 // Hero: MP3 via ACF ou meta
 $hero_audio_field = function_exists('get_field') ? get_field('hero_audio', 'option') : null;
 $hero_audio = is_array($hero_audio_field) ? ($hero_audio_field['url'] ?? '') : get_option('locutora_hero_audio', '');
