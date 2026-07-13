@@ -1,8 +1,7 @@
 <footer class="site-footer">
   <div class="site-footer__main">
     <a class="site-footer__brand" href="<?php echo esc_url(home_url('/')); ?>">
-      <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png'); ?>" alt="Adriana Rosa — Locutora">
-      <span aria-hidden="true">Adriana Rosa</span>
+      <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/footer-logo-locutora.png'); ?>" alt="Locutora.com — Adriana Rosa">
     </a>
 
     <section class="site-footer__column" aria-labelledby="footer-contact-title">
@@ -29,7 +28,7 @@
     </nav>
   </div>
   <div class="site-footer__legal">
-    <span>2022 &copy; Todos os Direitos Reservados</span>
+    <span>2026 &copy; Todos os Direitos Reservados</span>
     <span aria-hidden="true">|</span>
     <a href="<?php echo esc_url(home_url('/politica-de-privacidade/')); ?>">Política de Privacidade</a>
   </div>
