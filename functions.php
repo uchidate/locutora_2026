@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 10;
+const LOCUTORA_SITE_CONFIG_VERSION = 11;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -241,8 +241,8 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_privacy_blocks();
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
-    locutora_apply_yoast_metadata();
-    locutora_configure_yoast_identity();
+    locutora_apply_rank_math_metadata();
+    locutora_configure_rank_math_identity();
 
     $english_privacy = get_post(3);
     if ($english_privacy instanceof WP_Post
@@ -291,7 +291,7 @@ add_action('init', function (): void {
     }
 }, 98);
 
-function locutora_apply_yoast_metadata(): void {
+function locutora_apply_rank_math_metadata(): void {
     $metadata = [
         'home' => [
             'title' => 'Home - Locutora',
@@ -320,30 +320,30 @@ function locutora_apply_yoast_metadata(): void {
         if (!$page instanceof WP_Post) {
             continue;
         }
-        update_post_meta($page->ID, '_yoast_wpseo_title', $values['title']);
-        update_post_meta($page->ID, '_yoast_wpseo_metadesc', $values['description']);
+        update_post_meta($page->ID, 'rank_math_title', $values['title']);
+        update_post_meta($page->ID, 'rank_math_description', $values['description']);
+        delete_post_meta($page->ID, '_yoast_wpseo_title');
+        delete_post_meta($page->ID, '_yoast_wpseo_metadesc');
     }
 }
 
-function locutora_configure_yoast_identity(): void {
-    $titles = (array) get_option('wpseo_titles', []);
-    $titles['company_or_person'] = 'company';
-    $titles['company_name'] = 'Locutora.com';
+function locutora_configure_rank_math_identity(): void {
+    $titles = (array) get_option('rank-math-options-titles', []);
+    $titles['knowledgegraph_type'] = 'company';
+    $titles['knowledgegraph_name'] = 'Locutora.com';
     $titles['website_name'] = 'Locutora.com';
-    $titles['alternate_website_name'] = 'Adriana Rosa';
-    update_option('wpseo_titles', $titles);
+    $titles['website_alternate_name'] = 'Adriana Rosa';
+    $titles['social_url_instagram'] = 'https://www.instagram.com/adriana.rosa_s';
+    $titles['social_url_linkedin'] = 'https://www.linkedin.com/in/adrianarosa-voiceover/';
+    $titles['social_url_youtube'] = 'https://www.youtube.com/adrianalocutoracom';
+    update_option('rank-math-options-titles', $titles);
 
-    $social = (array) get_option('wpseo_social', []);
-    $social['other_social_urls'] = [
-        'https://www.linkedin.com/in/adrianarosa-voiceover/',
-        'https://www.instagram.com/adriana.rosa_s',
-        'https://www.youtube.com/adrianalocutoracom',
-    ];
-    update_option('wpseo_social', $social);
+    $modules = (array) get_option('rank_math_modules', []);
+    update_option('rank_math_modules', array_values(array_unique(array_merge($modules, ['sitemap', 'schema']))));
 }
 
-function locutora_install_yoast_seo(): void {
-    if (get_option('locutora_yoast_install_status') === 'active') {
+function locutora_install_rank_math_seo(): void {
+    if (get_option('locutora_rank_math_install_status') === 'active') {
         return;
     }
 
@@ -352,102 +352,60 @@ function locutora_install_yoast_seo(): void {
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
-    $plugin_file = 'wordpress-seo/wp-seo.php';
+    $plugin_file = 'seo-by-rank-math/rank-math.php';
     if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_file)) {
         $api = plugins_api('plugin_information', [
-            'slug' => 'wordpress-seo',
+            'slug' => 'seo-by-rank-math',
             'fields' => ['sections' => false],
         ]);
         if (is_wp_error($api) || empty($api->download_link)) {
-            update_option('locutora_yoast_install_status', 'erro-api');
+            update_option('locutora_rank_math_install_status', 'erro-api');
             return;
         }
 
         $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
         $installed = $upgrader->install($api->download_link);
         if (is_wp_error($installed) || $installed !== true) {
-            update_option('locutora_yoast_install_status', 'erro-instalacao');
+            update_option('locutora_rank_math_install_status', 'erro-instalacao');
             return;
         }
     }
 
     $activated = activate_plugin($plugin_file);
     if (is_wp_error($activated)) {
-        update_option('locutora_yoast_install_status', 'erro-ativacao');
+        update_option('locutora_rank_math_install_status', 'erro-ativacao');
         return;
     }
 
-    locutora_apply_yoast_metadata();
-    locutora_configure_yoast_identity();
-    update_option('locutora_yoast_install_status', 'active');
+    locutora_apply_rank_math_metadata();
+    locutora_configure_rank_math_identity();
+
+    $yoast = 'wordpress-seo/wp-seo.php';
+    if (is_plugin_active($yoast)) {
+        deactivate_plugins($yoast, true);
+    }
+    if (file_exists(WP_PLUGIN_DIR . '/' . $yoast)) {
+        delete_plugins([$yoast]);
+    }
+
+    update_option('locutora_rank_math_install_status', 'active');
 }
-add_action('locutora_install_yoast_seo', 'locutora_install_yoast_seo');
+add_action('locutora_install_rank_math_seo', 'locutora_install_rank_math_seo');
 
 add_action('init', function (): void {
-    if (get_option('locutora_yoast_install_status') !== 'active'
-        && !wp_next_scheduled('locutora_install_yoast_seo')) {
-        wp_schedule_single_event(time() + 5, 'locutora_install_yoast_seo');
+    if (get_option('locutora_rank_math_install_status') !== 'active'
+        && !wp_next_scheduled('locutora_install_rank_math_seo')) {
+        wp_schedule_single_event(time() + 5, 'locutora_install_rank_math_seo');
     }
 }, 100);
 
-add_filter('wpseo_opengraph_image', function ($image) {
+add_filter('rank_math/opengraph/facebook/image', function ($image) {
     return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
 });
 
-add_filter('wpseo_twitter_image', function ($image) {
+add_filter('rank_math/opengraph/twitter/image', function ($image) {
     return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
 });
-
-add_action('wpseo_add_opengraph_images', function ($images): void {
-    if (is_object($images) && method_exists($images, 'add_image')) {
-        $images->add_image(get_template_directory_uri() . '/assets/images/intro.png');
-    }
-});
-
-add_action('wpseo_add_twitter_images', function ($images): void {
-    if (is_object($images) && method_exists($images, 'add_image')) {
-        $images->add_image(get_template_directory_uri() . '/assets/images/intro.png');
-    }
-});
-
-add_action('wp_head', function (): void {
-    if (!class_exists('WPSEO_Options')) {
-        return;
-    }
-
-    $organization = [
-        '@context' => 'https://schema.org',
-        '@type' => ['Organization', 'ProfessionalService'],
-        '@id' => home_url('/#organization'),
-        'name' => 'Locutora.com',
-        'alternateName' => 'Adriana Rosa',
-        'url' => home_url('/'),
-        'logo' => [
-            '@type' => 'ImageObject',
-            'url' => get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png',
-        ],
-        'image' => get_template_directory_uri() . '/assets/images/intro.png',
-        'foundingDate' => '2004',
-        'founder' => [
-            '@type' => 'Person',
-            'name' => 'Adriana Rosa',
-        ],
-        'email' => ['adrianarosa@locutora.com', 'adrianarosa.voz@gmail.com'],
-        'telephone' => '+55 11 98440-4171',
-        'areaServed' => [
-            '@type' => 'Country',
-            'name' => 'Brasil',
-        ],
-        'sameAs' => [
-            'https://www.linkedin.com/in/adrianarosa-voiceover/',
-            'https://www.instagram.com/adriana.rosa_s',
-            'https://www.youtube.com/adrianalocutoracom',
-        ],
-    ];
-    ?>
-    <script type="application/ld+json" id="locutora-organization-schema"><?php echo wp_json_encode($organization, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
-    <?php
-}, 30);
 
 add_filter('wp_robots', function (array $robots): array {
     if (locutora_is_temporary_environment()) {
@@ -622,36 +580,61 @@ function locutora_about_story_default_content(): string {
 }
 
 function locutora_render_about_story_block(array $attributes): string {
-    $title = $attributes['title'] ?? 'Fundada em 2004, em<br>São Paulo.';
-    $content = $attributes['content'] ?? locutora_about_story_default_content();
+    $title = $attributes['title'] ?? "Fundada em 2004, em\nSão Paulo.";
+    $title = preg_replace('/<br\s*\/?>/i', "\n", $title) ?: $title;
+    $legacy_content = $attributes['content'] ?? locutora_about_story_default_content();
+    $uses_legacy_content = $legacy_content !== locutora_about_story_default_content();
     $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/sobre-intro.png';
     $image_alt = $attributes['imageAlt'] ?? 'Mesa de áudio de estúdio profissional';
     ob_start(); ?>
     <section class="about-story about-story--history"><div class="about-story__row">
-      <div class="about-story__copy reveal reveal--slide-top"><h2><?php echo wp_kses($title, ['br' => []]); ?></h2><?php echo wp_kses_post($content); ?></div>
+      <div class="about-story__copy reveal reveal--slide-top"><h2><?php echo nl2br(esc_html($title)); ?></h2>
+        <?php if ($uses_legacy_content) : ?>
+          <?php echo wp_kses_post($legacy_content); ?>
+        <?php else : ?>
+          <h3><?php echo esc_html($attributes['missionTitle'] ?? 'Missão'); ?></h3>
+          <p><?php echo esc_html($attributes['missionText'] ?? 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.'); ?></p>
+          <h3><?php echo esc_html($attributes['visionTitle'] ?? 'Visão'); ?></h3>
+          <p><?php echo esc_html($attributes['visionText'] ?? 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.'); ?></p>
+          <h3><?php echo esc_html($attributes['valuesTitle'] ?? 'Valores'); ?></h3>
+          <p><?php echo esc_html($attributes['valuesText'] ?? 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.'); ?></p>
+        <?php endif; ?>
+      </div>
       <figure class="about-story__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
     </div></section>
     <?php return (string) ob_get_clean();
 }
 
 function locutora_about_bio_default_content(): string {
-    return '<p>Adriana Rosa é uma locutora profissional brasileira, atriz, radialista e comunicadora de São Paulo, com mais de 20 anos de experiência em locução profissional para publicidade, rádio, televisão, internet e projetos corporativos. Reconhecida pela versatilidade e qualidade de sua voz, atende clientes de todo o Brasil e do mercado internacional.</p>'
-        . '<p>Formada em Produção Audiovisual e Teatro, Adriana também é radialista e possui pós-graduações em Influência Digital e Jornalismo Digital, unindo sólida formação acadêmica a ampla experiência prática no mercado da comunicação e do entretenimento.</p>'
-        . '<p>Especialista em locução em português do Brasil, atua em campanhas publicitárias, voice over, vídeos institucionais, treinamentos corporativos, e-learning, URA, conteúdos digitais e produções audiovisuais. Sua experiência permite entregar uma comunicação clara, envolvente e alinhada aos objetivos de cada marca.</p>'
-        . '<p>Como atriz profissional, Adriana Rosa oferece interpretações naturais, autênticas e versáteis, adaptando sua voz para diferentes estilos de locução: institucional, comercial, emocional, inspiracional, varejo, personagens e conteúdos corporativos.</p>'
-        . '<p>Sua trajetória inclui passagens por importantes emissoras de rádio, como a Rádio Trianon e a Novabrasil FM. Atualmente, é locutora da Classic Pan, pertencente ao Grupo Jovem Pan.</p>'
-        . '<p>Ao longo da carreira, já realizou trabalhos para grandes marcas nacionais e internacionais, entre elas: Amil, Santander, Bradesco, Globo, Prada, Apple, Danone, Banco da Amazônia, Mondial, Audi, Nespresso, Avon, Ticket, Netflix, Natura, Vivo, Volkswagen, GPA, 3M e McDonald\'s.</p>';
+    return implode('', array_map(static fn(string $paragraph): string => '<p>' . $paragraph . '</p>', locutora_about_bio_default_paragraphs()));
+}
+
+function locutora_about_bio_default_paragraphs(): array {
+    return [
+        'Adriana Rosa é uma locutora profissional brasileira, atriz, radialista e comunicadora de São Paulo, com mais de 20 anos de experiência em locução profissional para publicidade, rádio, televisão, internet e projetos corporativos. Reconhecida pela versatilidade e qualidade de sua voz, atende clientes de todo o Brasil e do mercado internacional.',
+        'Formada em Produção Audiovisual e Teatro, Adriana também é radialista e possui pós-graduações em Influência Digital e Jornalismo Digital, unindo sólida formação acadêmica a ampla experiência prática no mercado da comunicação e do entretenimento.',
+        'Especialista em locução em português do Brasil, atua em campanhas publicitárias, voice over, vídeos institucionais, treinamentos corporativos, e-learning, URA, conteúdos digitais e produções audiovisuais. Sua experiência permite entregar uma comunicação clara, envolvente e alinhada aos objetivos de cada marca.',
+        'Como atriz profissional, Adriana Rosa oferece interpretações naturais, autênticas e versáteis, adaptando sua voz para diferentes estilos de locução: institucional, comercial, emocional, inspiracional, varejo, personagens e conteúdos corporativos.',
+        'Sua trajetória inclui passagens por importantes emissoras de rádio, como a Rádio Trianon e a Novabrasil FM. Atualmente, é locutora da Classic Pan, pertencente ao Grupo Jovem Pan.',
+        "Ao longo da carreira, já realizou trabalhos para grandes marcas nacionais e internacionais, entre elas: Amil, Santander, Bradesco, Globo, Prada, Apple, Danone, Banco da Amazônia, Mondial, Audi, Nespresso, Avon, Ticket, Netflix, Natura, Vivo, Volkswagen, GPA, 3M e McDonald's.",
+    ];
 }
 
 function locutora_render_about_bio_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Adriana Rosa';
-    $content = $attributes['content'] ?? locutora_about_bio_default_content();
+    $legacy_content = $attributes['content'] ?? locutora_about_bio_default_content();
+    $uses_legacy_content = $legacy_content !== locutora_about_bio_default_content();
+    $paragraphs = locutora_about_bio_default_paragraphs();
     $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/adriana-rosa-retrato.jpg';
     $image_alt = $attributes['imageAlt'] ?? 'Retrato ilustrado de Adriana Rosa';
     ob_start(); ?>
     <section class="about-story about-story--bio"><div class="about-bio__row">
       <figure class="about-bio__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
-      <div class="about-bio__copy reveal reveal--slide-bottom"><h2><?php echo esc_html($title); ?></h2><?php echo wp_kses_post($content); ?></div>
+      <div class="about-bio__copy reveal reveal--slide-bottom"><h2><?php echo esc_html($title); ?></h2>
+        <?php if ($uses_legacy_content) : echo wp_kses_post($legacy_content); else : ?>
+          <?php foreach ($paragraphs as $index => $paragraph) : ?><p><?php echo esc_html($attributes['paragraph' . ($index + 1)] ?? $paragraph); ?></p><?php endforeach; ?>
+        <?php endif; ?>
+      </div>
     </div></section>
     <?php return (string) ob_get_clean();
 }
@@ -671,12 +654,46 @@ function locutora_render_brands_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
+function locutora_audio_showcase_soundcloud_embed_url(string $url): string {
+    $url = trim($url);
+    if ($url === '') {
+        $url = 'https://soundcloud.com/adrianarosalocutora';
+    }
+    if (str_contains($url, 'w.soundcloud.com/player/')) {
+        return $url;
+    }
+    return 'https://w.soundcloud.com/player/?url=' . rawurlencode($url) . '&auto_play=false&show_artwork=true&color=ff0035';
+}
+
+function locutora_youtube_embed_url(string $url): string {
+    $url = trim($url);
+    if ($url === '') {
+        return 'https://www.youtube.com/embed/videoseries?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc';
+    }
+    if (str_contains($url, '/embed/')) {
+        return $url;
+    }
+
+    $query = [];
+    parse_str((string) wp_parse_url($url, PHP_URL_QUERY), $query);
+    if (!empty($query['list'])) {
+        return 'https://www.youtube.com/embed/videoseries?list=' . rawurlencode((string) $query['list']);
+    }
+
+    $video_id = $query['v'] ?? '';
+    if ($video_id === '' && str_contains((string) wp_parse_url($url, PHP_URL_HOST), 'youtu.be')) {
+        $video_id = trim((string) wp_parse_url($url, PHP_URL_PATH), '/');
+    }
+    return $video_id !== '' ? 'https://www.youtube.com/embed/' . rawurlencode((string) $video_id) : $url;
+}
+
 function locutora_render_audio_showcase_block(array $attributes): string {
-    $title = $attributes['title'] ?? 'Locutora para URA, comerciais, institucionais, tutoriais; e<br>voz padrão para rádio e TV.';
-    $soundcloud = $attributes['soundcloudUrl'] ?? 'https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Fusers%2F12694227&auto_play=false&show_artwork=true&color=ff0035';
-    $youtube = $attributes['youtubeUrl'] ?? 'https://www.youtube.com/embed/videoseries?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc';
+    $title = $attributes['title'] ?? "Locutora para URA, comerciais, institucionais, tutoriais; e\nvoz padrão para rádio e TV.";
+    $title = preg_replace('/<br\s*\/?>/i', "\n", $title) ?: $title;
+    $soundcloud = locutora_audio_showcase_soundcloud_embed_url((string) ($attributes['soundcloudUrl'] ?? ''));
+    $youtube = locutora_youtube_embed_url((string) ($attributes['youtubeUrl'] ?? ''));
     ob_start(); ?>
-    <section class="audio-showcase"><h2><?php echo wp_kses($title, ['br' => []]); ?></h2><div class="audio-showcase__grid">
+    <section class="audio-showcase"><h2><?php echo nl2br(esc_html($title)); ?></h2><div class="audio-showcase__grid">
       <iframe title="Demos de Adriana Rosa no SoundCloud" loading="lazy" allow="autoplay" src="<?php echo esc_url($soundcloud); ?>"></iframe>
       <iframe title="Vídeos de locução institucional" loading="lazy" src="<?php echo esc_url($youtube); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div></section>
@@ -764,8 +781,14 @@ add_action('init', function (): void {
         'locutora/about-story' => [
             'render_callback' => 'locutora_render_about_story_block',
             'attributes' => [
-                'title' => ['type' => 'string', 'default' => 'Fundada em 2004, em<br>São Paulo.'],
+                'title' => ['type' => 'string', 'default' => "Fundada em 2004, em\nSão Paulo."],
                 'content' => ['type' => 'string', 'default' => locutora_about_story_default_content()],
+                'missionTitle' => ['type' => 'string', 'default' => 'Missão'],
+                'missionText' => ['type' => 'string', 'default' => 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.'],
+                'visionTitle' => ['type' => 'string', 'default' => 'Visão'],
+                'visionText' => ['type' => 'string', 'default' => 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.'],
+                'valuesTitle' => ['type' => 'string', 'default' => 'Valores'],
+                'valuesText' => ['type' => 'string', 'default' => 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.'],
                 'imageUrl' => ['type' => 'string', 'default' => ''],
                 'imageAlt' => ['type' => 'string', 'default' => 'Mesa de áudio de estúdio profissional'],
             ],
@@ -775,6 +798,12 @@ add_action('init', function (): void {
             'attributes' => [
                 'title' => ['type' => 'string', 'default' => 'Adriana Rosa'],
                 'content' => ['type' => 'string', 'default' => locutora_about_bio_default_content()],
+                'paragraph1' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[0]],
+                'paragraph2' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[1]],
+                'paragraph3' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[2]],
+                'paragraph4' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[3]],
+                'paragraph5' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[4]],
+                'paragraph6' => ['type' => 'string', 'default' => locutora_about_bio_default_paragraphs()[5]],
                 'imageUrl' => ['type' => 'string', 'default' => ''],
                 'imageAlt' => ['type' => 'string', 'default' => 'Retrato ilustrado de Adriana Rosa'],
             ],
@@ -789,9 +818,9 @@ add_action('init', function (): void {
         'locutora/audio-showcase' => [
             'render_callback' => 'locutora_render_audio_showcase_block',
             'attributes' => [
-                'title' => ['type' => 'string', 'default' => 'Locutora para URA, comerciais, institucionais, tutoriais; e<br>voz padrão para rádio e TV.'],
-                'soundcloudUrl' => ['type' => 'string', 'default' => 'https://w.soundcloud.com/player/?url=http%3A%2F%2Fapi.soundcloud.com%2Fusers%2F12694227&auto_play=false&show_artwork=true&color=ff0035'],
-                'youtubeUrl' => ['type' => 'string', 'default' => 'https://www.youtube.com/embed/videoseries?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc'],
+                'title' => ['type' => 'string', 'default' => "Locutora para URA, comerciais, institucionais, tutoriais; e\nvoz padrão para rádio e TV."],
+                'soundcloudUrl' => ['type' => 'string', 'default' => 'https://soundcloud.com/adrianarosalocutora'],
+                'youtubeUrl' => ['type' => 'string', 'default' => 'https://www.youtube.com/playlist?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc'],
             ],
         ],
         'locutora/contact-form' => [

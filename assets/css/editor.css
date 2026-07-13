@@ -112,6 +112,22 @@
   border: 1px solid #ddd;
 }
 
+.editor-styles-wrapper .locutora-editor-gallery__item {
+  position: relative;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__item .components-button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  color: #fff;
+  background: #b32d2e;
+  border-radius: 50%;
+}
+
 @media (max-width: 780px) {
   .editor-styles-wrapper .locutora-block-editor__fields {
     grid-template-columns: 1fr;
