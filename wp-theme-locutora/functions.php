@@ -323,18 +323,21 @@ function locutora_render_intro_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Locutora.com';
     $content = $attributes['content'] ?? locutora_intro_block_default_content();
     $button_label = $attributes['buttonLabel'] ?? 'Conheça';
+    $button_url = $attributes['buttonUrl'] ?? '';
+    $button_url = $button_url ?: home_url('/sobre-nos/');
     $portrait_url = $attributes['portraitUrl'] ?? '';
     $portrait_url = $portrait_url ?: get_template_directory_uri() . '/assets/images/intro.png';
+    $portrait_alt = $attributes['portraitAlt'] ?? 'Adriana Rosa, locutora profissional';
 
     ob_start(); ?>
     <section class="legacy-intro" id="sobre">
       <div class="legacy-intro__copy reveal reveal--slide-top">
         <h2 class="section-title"><?php echo esc_html($title); ?></h2>
         <?php echo wp_kses_post($content); ?>
-        <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
+        <a href="<?php echo esc_url($button_url); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
       </div>
       <figure class="legacy-intro__portrait reveal reveal--fade">
-        <img src="<?php echo esc_url($portrait_url); ?>" alt="Adriana Rosa, locutora profissional">
+        <img src="<?php echo esc_url($portrait_url); ?>" alt="<?php echo esc_attr($portrait_alt); ?>">
       </figure>
     </section>
     <?php return (string) ob_get_clean();
@@ -342,6 +345,8 @@ function locutora_render_intro_block(array $attributes): string {
 
 function locutora_render_services_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Fazemos gravações para:';
+    $services_url = $attributes['servicesUrl'] ?? '';
+    $services_url = $services_url ?: home_url('/servicos/');
     $services = [
         [$attributes['item1'] ?? 'Comerciais', $attributes['icon1Url'] ?? '', 'servico-comerciais.webp'],
         [$attributes['item2'] ?? 'Emissoras de rádio e tv', $attributes['icon2Url'] ?? '', 'servico-tv.webp'],
@@ -354,7 +359,7 @@ function locutora_render_services_block(array $attributes): string {
       <h2 class="section-title reveal reveal--fade"><?php echo esc_html($title); ?></h2>
       <div class="services-grid">
         <?php foreach ($services as [$service_title, $icon_url, $fallback_icon]) : ?>
-          <a class="service-item reveal reveal--fade" href="<?php echo esc_url(home_url('/servicos/')); ?>">
+          <a class="service-item reveal reveal--fade" href="<?php echo esc_url($services_url); ?>">
             <img src="<?php echo esc_url($icon_url ?: get_template_directory_uri() . '/assets/images/' . $fallback_icon); ?>" alt="">
             <h3 class="service-item__title"><?php echo esc_html($service_title); ?></h3>
           </a>
@@ -367,16 +372,20 @@ function locutora_render_services_block(array $attributes): string {
 function locutora_render_contact_cta_block(array $attributes): string {
     $heading = $attributes['heading'] ?? "Entre em contato\ncom Adriana Rosa";
     $button_label = $attributes['buttonLabel'] ?? 'Contato';
+    $button_url = $attributes['buttonUrl'] ?? '';
+    $button_url = $button_url ?: home_url('/contato/');
+    $video_url = $attributes['videoUrl'] ?? '';
+    $video_url = $video_url ?: get_template_directory_uri() . '/assets/video/contato.mp4';
 
     ob_start(); ?>
     <section class="cta-block" id="contato">
       <video autoplay muted loop playsinline preload="metadata" aria-hidden="true">
-        <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/contato.mp4'); ?>" type="video/mp4">
+        <source src="<?php echo esc_url($video_url); ?>" type="video/mp4">
       </video>
       <div class="cta-block__shade"></div>
       <div class="cta-block__content reveal reveal--fade">
         <h2><?php echo nl2br(esc_html($heading)); ?></h2>
-        <a href="<?php echo esc_url(home_url('/contato/')); ?>" class="btn-outline"><?php echo esc_html($button_label); ?></a>
+        <a href="<?php echo esc_url($button_url); ?>" class="btn-outline"><?php echo esc_html($button_label); ?></a>
       </div>
     </section>
     <?php return (string) ob_get_clean();
@@ -407,7 +416,9 @@ add_action('init', function (): void {
                 'title' => ['type' => 'string', 'default' => 'Locutora.com'],
                 'content' => ['type' => 'string', 'default' => locutora_intro_block_default_content()],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Conheça'],
+                'buttonUrl' => ['type' => 'string', 'default' => ''],
                 'portraitUrl' => ['type' => 'string', 'default' => ''],
+                'portraitAlt' => ['type' => 'string', 'default' => 'Adriana Rosa, locutora profissional'],
             ],
         ],
         'locutora/services' => [
@@ -418,6 +429,7 @@ add_action('init', function (): void {
                 'item2' => ['type' => 'string', 'default' => 'Emissoras de rádio e tv'],
                 'item3' => ['type' => 'string', 'default' => 'Conteúdos para internet'],
                 'item4' => ['type' => 'string', 'default' => 'E muito mais'],
+                'servicesUrl' => ['type' => 'string', 'default' => ''],
                 'icon1Url' => ['type' => 'string', 'default' => ''],
                 'icon2Url' => ['type' => 'string', 'default' => ''],
                 'icon3Url' => ['type' => 'string', 'default' => ''],
@@ -429,6 +441,8 @@ add_action('init', function (): void {
             'attributes' => [
                 'heading' => ['type' => 'string', 'default' => "Entre em contato\ncom Adriana Rosa"],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Contato'],
+                'buttonUrl' => ['type' => 'string', 'default' => ''],
+                'videoUrl' => ['type' => 'string', 'default' => ''],
             ],
         ],
     ];
