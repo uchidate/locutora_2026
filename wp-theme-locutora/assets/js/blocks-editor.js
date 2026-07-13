@@ -31,7 +31,15 @@
         BaseControl,
         { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--gallery' },
         value.length ? el('div', { className: 'locutora-editor-gallery' }, value.map(function (url, index) {
-          return el('img', { key: url + index, src: url, alt: '' });
+          return el('div', { key: url + index, className: 'locutora-editor-gallery__item' },
+            el('img', { src: url, alt: '' }),
+            el(Button, {
+              icon: 'no-alt',
+              label: __('Remover logotipo', 'locutora'),
+              isDestructive: true,
+              onClick: function () { update(value.filter(function (_, itemIndex) { return itemIndex !== index; })); },
+            })
+          );
         })) : el('p', null, __('As imagens padrão do tema estão em uso.', 'locutora')),
         el(MediaUploadCheck, null,
           el(MediaUpload, {
@@ -86,6 +94,8 @@
       key: field.name,
       label: field.label,
       value: value,
+      type: field.url ? 'url' : 'text',
+      help: field.help || undefined,
       rows: field.rows || 4,
       onChange: update,
     });
@@ -187,8 +197,13 @@
       title: 'Locutora — História',
       icon: 'book-alt',
       fields: [
-        { name: 'title', label: 'Título' },
-        { name: 'content', label: 'Missão, visão e valores', richtext: true },
+        { name: 'title', label: 'Título', multiline: true, rows: 2 },
+        { name: 'missionTitle', label: 'Título: Missão' },
+        { name: 'missionText', label: 'Texto da missão', multiline: true, rows: 4 },
+        { name: 'visionTitle', label: 'Título: Visão' },
+        { name: 'visionText', label: 'Texto da visão', multiline: true, rows: 4 },
+        { name: 'valuesTitle', label: 'Título: Valores' },
+        { name: 'valuesText', label: 'Texto dos valores', multiline: true, rows: 4 },
         { name: 'imageUrl', label: 'Imagem do estúdio', media: true },
         { name: 'imageAlt', label: 'Descrição da imagem' },
       ],
@@ -199,7 +214,12 @@
       icon: 'admin-users',
       fields: [
         { name: 'title', label: 'Nome' },
-        { name: 'content', label: 'Biografia', richtext: true },
+        { name: 'paragraph1', label: 'Biografia — parágrafo 1', multiline: true, rows: 5 },
+        { name: 'paragraph2', label: 'Biografia — parágrafo 2', multiline: true, rows: 5 },
+        { name: 'paragraph3', label: 'Biografia — parágrafo 3', multiline: true, rows: 5 },
+        { name: 'paragraph4', label: 'Biografia — parágrafo 4', multiline: true, rows: 5 },
+        { name: 'paragraph5', label: 'Biografia — parágrafo 5', multiline: true, rows: 5 },
+        { name: 'paragraph6', label: 'Biografia — parágrafo 6', multiline: true, rows: 5 },
         { name: 'imageUrl', label: 'Retrato', media: true },
         { name: 'imageAlt', label: 'Descrição do retrato' },
       ],
@@ -218,9 +238,9 @@
       title: 'Locutora — Áudios e vídeos',
       icon: 'playlist-audio',
       fields: [
-        { name: 'title', label: 'Título' },
-        { name: 'soundcloudUrl', label: 'URL incorporada do SoundCloud' },
-        { name: 'youtubeUrl', label: 'URL incorporada do YouTube' },
+        { name: 'title', label: 'Título da seção', multiline: true, rows: 3, help: 'Use uma nova linha para controlar a quebra do título.' },
+        { name: 'soundcloudUrl', label: 'Link do SoundCloud', url: true, help: 'Cole o link normal do perfil, faixa ou playlist. O player é criado automaticamente.' },
+        { name: 'youtubeUrl', label: 'Link do YouTube', url: true, help: 'Cole o link normal de um vídeo ou playlist. O player é criado automaticamente.' },
       ],
     },
     {
