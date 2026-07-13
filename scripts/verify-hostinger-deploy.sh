@@ -26,7 +26,6 @@ routes=(
   "/sobre-nos/"
   "/servicos/"
   "/contato/"
-  "/orcamento/"
   "/politica-de-privacidade/"
 )
 

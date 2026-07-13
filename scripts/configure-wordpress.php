@@ -59,7 +59,6 @@ $pages = [
     'sobre-nos' => locutora_ensure_page('sobre-nos', 'Sobre nós', 'page-sobre-nos.php'),
     'servicos' => locutora_ensure_page('servicos', 'Áudios', 'page-servicos.php'),
     'contato' => locutora_ensure_page('contato', 'Contato', 'page-contato.php'),
-    'orcamento' => locutora_ensure_page('orcamento', 'Orçamento', 'page-orcamento.php'),
     'politica-de-privacidade' => locutora_ensure_page(
         'politica-de-privacidade',
         'Política de Privacidade',

@@ -236,24 +236,6 @@
         { name: 'buttonLabel', label: 'Texto do botão' },
       ],
     },
-    {
-      name: 'locutora/budget-hero',
-      title: 'Locutora — Cabeçalho do orçamento',
-      icon: 'money-alt',
-      fields: [
-        { name: 'eyebrow', label: 'Linha superior' },
-        { name: 'title', label: 'Título' },
-        { name: 'subtitle', label: 'Subtítulo' },
-      ],
-    },
-    {
-      name: 'locutora/budget-intro',
-      title: 'Locutora — Introdução do orçamento',
-      icon: 'text-page',
-      fields: [
-        { name: 'content', label: 'Texto de orientação', richtext: true },
-      ],
-    },
   ];
 
   definitions.forEach(function (definition) {

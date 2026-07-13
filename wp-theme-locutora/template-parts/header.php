@@ -1,6 +1,3 @@
-<?php
-$cta_url   = get_permalink(get_page_by_path('orcamento')) ?: '#orcamento';
-?>
 <header class="site-header">
   <button class="site-menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" aria-label="Abrir menu">
     <span></span><span></span><span></span>
