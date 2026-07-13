@@ -984,6 +984,11 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .privacy-page__content { width: min(1200px, 100%); margin: auto; color: #555; font-size: 14px; line-height: 1.65; }
 .privacy-page__content h1 { margin: 0 0 35px; padding-bottom: 20px; border-bottom: 1px solid #ddd; color: #333; font-size: 36px; font-weight: 500; }
 .privacy-page__content h2, .privacy-page__content h3 { color: #333; }
+.privacy-page__content h2 { margin: 42px 0 14px; font-size: 21px; line-height: 1.35; }
+.privacy-page__content p { margin: 0 0 18px; }
+.privacy-page__content ul { margin: 0 0 24px; padding-left: 24px; }
+.privacy-page__content li { margin-bottom: 8px; }
+.privacy-page__content a { color: #9f6506; }
 
 @media (max-width: 800px) {
   .internal-hero { height: 270px; }
