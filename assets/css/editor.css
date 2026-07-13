@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+.editor-styles-wrapper {
+  color: #555;
+  background: #fff;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.editor-styles-wrapper .wp-block {
+  max-width: 1200px;
+}
+
+.editor-styles-wrapper h1,
+.editor-styles-wrapper h2,
+.editor-styles-wrapper h3,
+.editor-styles-wrapper strong {
+  color: #333;
+}
+
+.editor-styles-wrapper .wp-block-list {
+  padding-left: 28px;
+}
+
+.editor-styles-wrapper .wp-block-list li {
+  margin-bottom: 8px;
+}
+
+.editor-styles-wrapper a {
+  color: #9f6506;
+}

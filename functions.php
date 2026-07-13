@@ -5,18 +5,123 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 2;
+const LOCUTORA_SITE_CONFIG_VERSION = 3;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
     add_theme_support('html5', ['search-form', 'comment-form', 'comment-list', 'gallery', 'caption']);
+    add_theme_support('editor-styles');
+    add_theme_support('align-wide');
+    add_theme_support('responsive-embeds');
+    add_editor_style('assets/css/editor.css');
 
     register_nav_menus([
         'primary' => 'Menu principal',
     ]);
 });
+
+function locutora_dom_inner_html(DOMNode $node): string {
+    $html = '';
+
+    foreach ($node->childNodes as $child) {
+        $html .= $node->ownerDocument->saveHTML($child);
+    }
+
+    return trim($html);
+}
+
+/**
+ * Converte o HTML confiável do tema em blocos nativos editáveis do Gutenberg.
+ */
+function locutora_html_to_core_blocks(string $html): string {
+    if (!class_exists('DOMDocument')) {
+        return '';
+    }
+
+    $document = new DOMDocument('1.0', 'UTF-8');
+    $previous = libxml_use_internal_errors(true);
+    $loaded = $document->loadHTML(
+        '<?xml encoding="UTF-8"><div id="locutora-block-root">' . $html . '</div>',
+        LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+    );
+    libxml_clear_errors();
+    libxml_use_internal_errors($previous);
+
+    if (!$loaded) {
+        return '';
+    }
+
+    $root = $document->getElementById('locutora-block-root');
+    if (!$root instanceof DOMElement) {
+        return '';
+    }
+
+    $blocks = [];
+
+    foreach ($root->childNodes as $node) {
+        if (!$node instanceof DOMElement) {
+            continue;
+        }
+
+        $tag = strtolower($node->tagName);
+
+        if ($tag === 'p') {
+            $blocks[] = "<!-- wp:paragraph -->\n" . $document->saveHTML($node) . "\n<!-- /wp:paragraph -->";
+            continue;
+        }
+
+        if ($tag === 'ul' || $tag === 'ol') {
+            $attributes = [];
+            if ($tag === 'ol') {
+                $attributes['ordered'] = true;
+                $start = (int) $node->getAttribute('start');
+                if ($start > 1) {
+                    $attributes['start'] = $start;
+                }
+            }
+
+            $node->setAttribute('class', trim($node->getAttribute('class') . ' wp-block-list'));
+            $serialized_attributes = $attributes ? ' ' . wp_json_encode($attributes) : '';
+            $blocks[] = '<!-- wp:list' . $serialized_attributes . " -->\n"
+                . $document->saveHTML($node)
+                . "\n<!-- /wp:list -->";
+            continue;
+        }
+
+        if (in_array($tag, ['h2', 'h3', 'h4'], true)) {
+            $level = (int) substr($tag, 1);
+            $blocks[] = '<!-- wp:heading {"level":' . $level . "} -->\n"
+                . $document->saveHTML($node)
+                . "\n<!-- /wp:heading -->";
+            continue;
+        }
+
+        $blocks[] = "<!-- wp:html -->\n" . $document->saveHTML($node) . "\n<!-- /wp:html -->";
+    }
+
+    return implode("\n\n", $blocks);
+}
+
+function locutora_seed_privacy_blocks(): void {
+    $privacy_page = get_page_by_path('politica-de-privacidade', OBJECT, 'page');
+    if (!$privacy_page instanceof WP_Post || trim((string) $privacy_page->post_content) !== '') {
+        return;
+    }
+
+    ob_start();
+    get_template_part('template-parts/privacy-content');
+    $privacy_html = (string) ob_get_clean();
+    $privacy_blocks = locutora_html_to_core_blocks($privacy_html);
+
+    if ($privacy_blocks !== '') {
+        wp_update_post([
+            'ID' => $privacy_page->ID,
+            'post_content' => $privacy_blocks,
+        ]);
+    }
+}
 
 /* ─── Configuração inicial segura ao ativar o tema ─── */
 function locutora_ensure_structural_page(string $slug, string $title, string $template = 'default'): int {
@@ -83,6 +188,8 @@ function locutora_configure_site_on_activation(): void {
     if ($privacy_id > 0) {
         update_option('page_for_privacy_policy', $privacy_id);
     }
+
+    locutora_seed_privacy_blocks();
 
     $sample_page = get_page_by_path('sample-page', OBJECT, 'page');
     if ($sample_page instanceof WP_Post && $sample_page->post_title === 'Sample Page') {
