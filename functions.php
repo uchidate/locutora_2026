@@ -438,7 +438,6 @@ function locutora_requested_plugins(): array {
     return [
         ['slug' => 'litespeed-cache', 'file' => 'litespeed-cache/litespeed-cache.php', 'label' => 'LiteSpeed Cache'],
         ['slug' => 'wp-mail-smtp', 'file' => 'wp-mail-smtp/wp_mail_smtp.php', 'label' => 'WP Mail SMTP'],
-        ['slug' => 'updraftplus', 'file' => 'updraftplus/updraftplus.php', 'label' => 'UpdraftPlus'],
         ['slug' => 'two-factor', 'file' => 'two-factor/two-factor.php', 'label' => 'Two Factor'],
         ['slug' => 'advanced-custom-fields', 'file' => 'advanced-custom-fields/acf.php', 'label' => 'Advanced Custom Fields'],
         ['slug' => 'enable-media-replace', 'file' => 'enable-media-replace/enable-media-replace.php', 'label' => 'Enable Media Replace'],
