@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 6;
+const LOCUTORA_SITE_CONFIG_VERSION = 7;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -159,6 +159,7 @@ function locutora_seed_internal_blocks(): void {
         'orcamento' => [
             '<!-- wp:locutora/budget-hero /-->',
             '<!-- wp:locutora/budget-intro /-->',
+            '<!-- wp:locutora/contact-form /-->',
         ],
     ];
 
@@ -170,8 +171,19 @@ function locutora_seed_internal_blocks(): void {
 
         $current_content = trim((string) $page->post_content);
         if ($slug === 'orcamento' && preg_match('/^\[contact-form-7\b[^\]]+\]$/', $current_content)) {
+            array_pop($blocks);
             $blocks[] = "<!-- wp:shortcode -->\n" . $current_content . "\n<!-- /wp:shortcode -->";
             $current_content = '';
+        }
+
+        if ($slug === 'orcamento' && substr_count($current_content, '<!-- wp:') === 2
+            && str_contains($current_content, '<!-- wp:locutora/budget-hero')
+            && str_contains($current_content, '<!-- wp:locutora/budget-intro')) {
+            wp_update_post([
+                'ID' => $page->ID,
+                'post_content' => $current_content . "\n\n<!-- wp:locutora/contact-form /-->",
+            ]);
+            continue;
         }
 
         if ($current_content !== '') {
