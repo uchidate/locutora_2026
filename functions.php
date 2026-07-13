@@ -410,6 +410,45 @@ add_action('wpseo_add_twitter_images', function ($images): void {
     }
 });
 
+add_action('wp_head', function (): void {
+    if (!class_exists('WPSEO_Options')) {
+        return;
+    }
+
+    $organization = [
+        '@context' => 'https://schema.org',
+        '@type' => ['Organization', 'ProfessionalService'],
+        '@id' => home_url('/#organization'),
+        'name' => 'Locutora.com',
+        'alternateName' => 'Adriana Rosa',
+        'url' => home_url('/'),
+        'logo' => [
+            '@type' => 'ImageObject',
+            'url' => get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png',
+        ],
+        'image' => get_template_directory_uri() . '/assets/images/intro.png',
+        'foundingDate' => '2004',
+        'founder' => [
+            '@type' => 'Person',
+            'name' => 'Adriana Rosa',
+        ],
+        'email' => ['adrianarosa@locutora.com', 'adrianarosa.voz@gmail.com'],
+        'telephone' => '+55 11 98440-4171',
+        'areaServed' => [
+            '@type' => 'Country',
+            'name' => 'Brasil',
+        ],
+        'sameAs' => [
+            'https://www.linkedin.com/in/adrianarosa-voiceover/',
+            'https://www.instagram.com/adriana.rosa_s',
+            'https://www.youtube.com/adrianalocutoracom',
+        ],
+    ];
+    ?>
+    <script type="application/ld+json" id="locutora-organization-schema"><?php echo wp_json_encode($organization, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?></script>
+    <?php
+}, 30);
+
 add_filter('wp_robots', function (array $robots): array {
     if (locutora_is_temporary_environment()) {
         $robots['noindex'] = true;
