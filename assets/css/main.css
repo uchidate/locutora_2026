@@ -843,8 +843,6 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .site-footer__main { padding-top: 150px; padding-bottom: 45px; }
 .site-footer__brand img { width: 200px; }
 .site-footer__brand { position: relative; display: block; width: 200px; }
-.site-footer__brand span { position: absolute; top: 73px; left: 0; width: 100%; color: #111; font-size: 27px; font-weight: 300; line-height: 1; text-align: center; text-transform: uppercase; }
-.site-footer__brand::after { content: ''; position: absolute; top: 108px; left: 0; width: 100%; height: 1px; background: #111; }
 .site-footer__column h2 { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #ddd; font-size: 28px; }
 .site-footer__column a { font-size: 16px; }
 .site-footer__legal { padding-top: 20px; padding-bottom: 20px; font-size: 15px; }
