@@ -789,6 +789,18 @@ function locutora_brand_asset_url(string $url): string {
         return $url;
     }
 
+    $visible_assets = [
+        'apple.png' => 'apple-visible.png',
+        'Globo.png' => 'Globo-visible.png',
+        'Claro.png' => 'Claro-visible.png',
+        'boticario.png' => 'boticario-visible.png',
+        'avon2.png' => 'avon2-visible.png',
+    ];
+    $filename = wp_basename((string) wp_parse_url($url, PHP_URL_PATH));
+    if (isset($visible_assets[$filename])) {
+        $url = str_replace('/' . $filename, '/' . $visible_assets[$filename], $url);
+    }
+
     return add_query_arg('ver', wp_get_theme()->get('Version'), remove_query_arg('ver', $url));
 }
 
@@ -845,8 +857,10 @@ function locutora_render_audio_showcase_block(array $attributes): string {
     $title = preg_replace('/<br\s*\/?>/i', "\n", $title) ?: $title;
     $soundcloud = locutora_audio_showcase_soundcloud_embed_url((string) ($attributes['soundcloudUrl'] ?? ''));
     $youtube = locutora_youtube_embed_url((string) ($attributes['youtubeUrl'] ?? ''));
+    $background_url = trim((string) ($attributes['backgroundUrl'] ?? ''));
+    $section_style = $background_url !== '' ? 'background-image:url(' . esc_url_raw($background_url) . ')' : '';
     ob_start(); ?>
-    <section class="audio-showcase"><h2><?php echo nl2br(esc_html($title)); ?></h2><div class="audio-showcase__grid">
+    <section class="audio-showcase"<?php echo $section_style !== '' ? ' style="' . esc_attr($section_style) . '"' : ''; ?>><h2><?php echo nl2br(esc_html($title)); ?></h2><div class="audio-showcase__grid">
       <iframe title="Demos de Adriana Rosa no SoundCloud" loading="lazy" allow="autoplay" src="<?php echo esc_url($soundcloud); ?>"></iframe>
       <iframe title="Vídeos de locução institucional" loading="lazy" src="<?php echo esc_url($youtube); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div></section>
@@ -974,6 +988,7 @@ add_action('init', function (): void {
                 'title' => ['type' => 'string', 'default' => "Locutora para URA, comerciais, institucionais, tutoriais; e\nvoz padrão para rádio e TV."],
                 'soundcloudUrl' => ['type' => 'string', 'default' => 'https://soundcloud.com/adrianarosalocutora'],
                 'youtubeUrl' => ['type' => 'string', 'default' => 'https://www.youtube.com/playlist?list=PLTqOomsLyDw3eTbCCkSR-h9lI0iH3wPQc'],
+                'backgroundUrl' => ['type' => 'string', 'default' => ''],
             ],
         ],
         'locutora/contact-form' => [

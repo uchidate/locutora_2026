@@ -101,7 +101,7 @@
     });
   }
 
-  function editor(fields, title) {
+  function editor(fields, title, alwaysEdit) {
     return function Edit(props) {
       const state = useState('edit');
       const mode = state[0];
@@ -119,7 +119,7 @@
           )
         ),
         el(InspectorControls, null, el(PanelBody, { title: __('Conteúdo da seção', 'locutora'), initialOpen: true }, sidebarControls)),
-        props.isSelected && mode === 'edit' ? el(
+        (alwaysEdit || props.isSelected) && mode === 'edit' ? el(
           'div',
           { className: 'locutora-block-editor' },
           el('h3', { className: 'locutora-block-editor__title' }, __('Editar: ', 'locutora') + title),
@@ -241,7 +241,9 @@
         { name: 'title', label: 'Título da seção', multiline: true, rows: 3, help: 'Use uma nova linha para controlar a quebra do título.' },
         { name: 'soundcloudUrl', label: 'Link do SoundCloud', url: true, help: 'Cole o link normal do perfil, faixa ou playlist. O player é criado automaticamente.' },
         { name: 'youtubeUrl', label: 'Link do YouTube', url: true, help: 'Cole o link normal de um vídeo ou playlist. O player é criado automaticamente.' },
+        { name: 'backgroundUrl', label: 'Imagem de fundo', media: true },
       ],
+      alwaysEdit: true,
     },
     {
       name: 'locutora/contact-form',
@@ -265,7 +267,7 @@
       icon: definition.icon,
       category: 'design',
       supports: { html: false, reusable: false },
-      edit: editor(definition.fields, definition.title),
+      edit: editor(definition.fields, definition.title, definition.alwaysEdit === true),
       save: function () { return null; },
     });
   });
