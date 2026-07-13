@@ -136,6 +136,7 @@
       name: 'locutora/hero',
       title: 'Locutora — Hero',
       icon: 'format-video',
+      alwaysEdit: true,
       fields: [
         { name: 'eyebrow', label: 'Linha superior' },
         { name: 'title', label: 'Título' },
@@ -146,6 +147,7 @@
       name: 'locutora/intro',
       title: 'Locutora — Apresentação',
       icon: 'welcome-write-blog',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Título' },
         { name: 'content', label: 'Texto da apresentação', richtext: true },
@@ -159,6 +161,7 @@
       name: 'locutora/services',
       title: 'Locutora — Serviços',
       icon: 'megaphone',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Título' },
         { name: 'item1', label: 'Serviço 1' },
@@ -176,6 +179,7 @@
       name: 'locutora/contact-cta',
       title: 'Locutora — Chamada de contato',
       icon: 'email-alt',
+      alwaysEdit: true,
       fields: [
         { name: 'heading', label: 'Chamada', multiline: true, rows: 3 },
         { name: 'buttonLabel', label: 'Texto do botão' },
@@ -187,6 +191,7 @@
       name: 'locutora/internal-hero',
       title: 'Locutora — Cabeçalho interno',
       icon: 'cover-image',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Título da página' },
         { name: 'backgroundUrl', label: 'Imagem de fundo', media: true },
@@ -196,6 +201,7 @@
       name: 'locutora/about-story',
       title: 'Locutora — História',
       icon: 'book-alt',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Título', multiline: true, rows: 2 },
         { name: 'missionTitle', label: 'Título: Missão' },
@@ -212,6 +218,7 @@
       name: 'locutora/about-bio',
       title: 'Locutora — Biografia',
       icon: 'admin-users',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Nome' },
         { name: 'paragraph1', label: 'Biografia — parágrafo 1', multiline: true, rows: 5 },
@@ -228,6 +235,7 @@
       name: 'locutora/brands',
       title: 'Locutora — Marcas',
       icon: 'grid-view',
+      alwaysEdit: true,
       fields: [
         { name: 'title', label: 'Título' },
         { name: 'images', label: 'Logotipos', gallery: true },
