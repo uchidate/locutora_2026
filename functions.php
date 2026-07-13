@@ -323,6 +323,8 @@ function locutora_render_intro_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Locutora.com';
     $content = $attributes['content'] ?? locutora_intro_block_default_content();
     $button_label = $attributes['buttonLabel'] ?? 'Conheça';
+    $portrait_url = $attributes['portraitUrl'] ?? '';
+    $portrait_url = $portrait_url ?: get_template_directory_uri() . '/assets/images/intro.png';
 
     ob_start(); ?>
     <section class="legacy-intro" id="sobre">
@@ -332,7 +334,7 @@ function locutora_render_intro_block(array $attributes): string {
         <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
       </div>
       <figure class="legacy-intro__portrait reveal reveal--fade">
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/intro.png'); ?>" alt="Adriana Rosa, locutora profissional">
+        <img src="<?php echo esc_url($portrait_url); ?>" alt="Adriana Rosa, locutora profissional">
       </figure>
     </section>
     <?php return (string) ob_get_clean();
@@ -340,22 +342,20 @@ function locutora_render_intro_block(array $attributes): string {
 
 function locutora_render_services_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Fazemos gravações para:';
-    $fallback = [
-        [$attributes['item1'] ?? 'Comerciais', 'servico-comerciais.webp'],
-        [$attributes['item2'] ?? 'Emissoras de rádio e tv', 'servico-tv.webp'],
-        [$attributes['item3'] ?? 'Conteúdos para internet', 'servico-internet.webp'],
-        [$attributes['item4'] ?? 'E muito mais', 'servico-mais.webp'],
+    $services = [
+        [$attributes['item1'] ?? 'Comerciais', $attributes['icon1Url'] ?? '', 'servico-comerciais.webp'],
+        [$attributes['item2'] ?? 'Emissoras de rádio e tv', $attributes['icon2Url'] ?? '', 'servico-tv.webp'],
+        [$attributes['item3'] ?? 'Conteúdos para internet', $attributes['icon3Url'] ?? '', 'servico-internet.webp'],
+        [$attributes['item4'] ?? 'E muito mais', $attributes['icon4Url'] ?? '', 'servico-mais.webp'],
     ];
-    $posts = get_posts(['post_type' => 'servico', 'numberposts' => 4, 'orderby' => 'menu_order title', 'order' => 'ASC']);
-    $services = $posts ? array_map(static fn ($item) => [$item->post_title, 'servico-mais.webp'], $posts) : $fallback;
 
     ob_start(); ?>
     <section class="services" id="servicos">
       <h2 class="section-title reveal reveal--fade"><?php echo esc_html($title); ?></h2>
       <div class="services-grid">
-        <?php foreach ($services as [$service_title, $icon]) : ?>
+        <?php foreach ($services as [$service_title, $icon_url, $fallback_icon]) : ?>
           <a class="service-item reveal reveal--fade" href="<?php echo esc_url(home_url('/servicos/')); ?>">
-            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $icon); ?>" alt="">
+            <img src="<?php echo esc_url($icon_url ?: get_template_directory_uri() . '/assets/images/' . $fallback_icon); ?>" alt="">
             <h3 class="service-item__title"><?php echo esc_html($service_title); ?></h3>
           </a>
         <?php endforeach; ?>
@@ -407,6 +407,7 @@ add_action('init', function (): void {
                 'title' => ['type' => 'string', 'default' => 'Locutora.com'],
                 'content' => ['type' => 'string', 'default' => locutora_intro_block_default_content()],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Conheça'],
+                'portraitUrl' => ['type' => 'string', 'default' => ''],
             ],
         ],
         'locutora/services' => [
@@ -417,6 +418,10 @@ add_action('init', function (): void {
                 'item2' => ['type' => 'string', 'default' => 'Emissoras de rádio e tv'],
                 'item3' => ['type' => 'string', 'default' => 'Conteúdos para internet'],
                 'item4' => ['type' => 'string', 'default' => 'E muito mais'],
+                'icon1Url' => ['type' => 'string', 'default' => ''],
+                'icon2Url' => ['type' => 'string', 'default' => ''],
+                'icon3Url' => ['type' => 'string', 'default' => ''],
+                'icon4Url' => ['type' => 'string', 'default' => ''],
             ],
         ],
         'locutora/contact-cta' => [
