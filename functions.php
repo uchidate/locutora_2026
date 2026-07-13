@@ -371,6 +371,14 @@ add_action('init', function (): void {
     }
 }, 100);
 
+add_filter('wpseo_opengraph_image', function ($image) {
+    return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
+});
+
+add_filter('wpseo_twitter_image', function ($image) {
+    return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
+});
+
 add_filter('wp_robots', function (array $robots): array {
     if (locutora_is_temporary_environment()) {
         $robots['noindex'] = true;
