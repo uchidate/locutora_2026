@@ -6,7 +6,13 @@
     <?php
     while (have_posts()) {
       the_post();
-      the_content();
+      $privacy_content = trim((string) get_the_content());
+
+      if ($privacy_content !== '') {
+        the_content();
+      } else {
+        get_template_part('template-parts/privacy-content');
+      }
     }
     ?>
   </article>
