@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 3;
+const LOCUTORA_SITE_CONFIG_VERSION = 4;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -123,6 +123,23 @@ function locutora_seed_privacy_blocks(): void {
     }
 }
 
+function locutora_seed_home_blocks(): void {
+    $home_page = get_page_by_path('home', OBJECT, 'page');
+    if (!$home_page instanceof WP_Post || trim((string) $home_page->post_content) !== '') {
+        return;
+    }
+
+    wp_update_post([
+        'ID' => $home_page->ID,
+        'post_content' => implode("\n\n", [
+            '<!-- wp:locutora/hero /-->',
+            '<!-- wp:locutora/intro /-->',
+            '<!-- wp:locutora/services /-->',
+            '<!-- wp:locutora/contact-cta /-->',
+        ]),
+    ]);
+}
+
 /* ─── Configuração inicial segura ao ativar o tema ─── */
 function locutora_ensure_structural_page(string $slug, string $title, string $template = 'default'): int {
     $page = get_page_by_path($slug, OBJECT, 'page');
@@ -190,6 +207,7 @@ function locutora_configure_site_on_activation(): void {
     }
 
     locutora_seed_privacy_blocks();
+    locutora_seed_home_blocks();
 
     $sample_page = get_page_by_path('sample-page', OBJECT, 'page');
     if ($sample_page instanceof WP_Post && $sample_page->post_title === 'Sample Page') {
@@ -259,6 +277,163 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script('locutora-player', get_template_directory_uri() . '/assets/js/player.js', ['wavesurfer'], $v, true);
     wp_enqueue_script('locutora-hero', get_template_directory_uri() . '/assets/js/hero.js', [], $v, true);
     wp_enqueue_script('locutora-cookie-consent', get_template_directory_uri() . '/assets/js/cookie-consent.js', [], $v, true);
+});
+
+function locutora_intro_block_default_content(): string {
+    return '<h3>Locutora Profissional | Gravação de voz para publicidade, TV, rádio e URA</h3>'
+        . '<p><strong>Se você procura uma locutora profissional para dar mais credibilidade e impacto à comunicação da sua empresa, está no lugar certo.</strong></p>'
+        . '<p>Sou Adriana Rosa, locutora profissional atuando no mercado desde 2004, especializada em gravação de voz para campanhas publicitárias, vídeos institucionais, URA, espera telefônica, conteúdos corporativos e projetos digitais. Ao longo de mais de duas décadas de experiência, atendi empresas, agências e produtoras em todo o Brasil e exterior, sempre com qualidade profissional e entrega rápida.</p>'
+        . '<h3>Voz para Publicidade, TV e Rádio</h3>'
+        . '<p>Uma boa voz para publicidade faz toda a diferença na conexão com o público. Realizo locuções para campanhas promocionais, comerciais, lançamentos de produtos e ações de marketing, oferecendo uma voz marcante e alinhada à identidade da sua marca.</p>'
+        . '<p>Também produzo gravações de voz para TV e rádio, criando mensagens claras, envolventes e profissionais para diferentes formatos de mídia.</p>'
+        . '<h3>Serviços de Locução Profissional</h3>'
+        . '<p>Gravação para publicidade, TV, rádio, URA, espera telefônica, vídeos institucionais, treinamentos, e-learning, campanhas e conteúdo digital.</p>'
+        . '<ul><li>Gravação de voz para publicidade</li><li>Voz para TV e rádio</li><li>Gravação de URA profissional</li><li>Espera telefônica personalizada</li><li>Locução para vídeos institucionais</li><li>Gravação de URA e espera telefônica</li><li>Locução para treinamentos e e-learning</li><li>Campanhas promocionais e comerciais</li><li>Conteúdo para redes sociais e mídia digital</li></ul>'
+        . '<h3>Locutora Profissional com Experiência Comprovada</h3>'
+        . '<p>Desde 2004, desenvolvo projetos de locução para empresas de diversos segmentos, contribuindo para fortalecer marcas e melhorar a comunicação com clientes. Minha experiência permite adaptar a interpretação e o estilo de voz às necessidades de cada projeto.</p>'
+        . '<h3>Qualidade Profissional e Atendimento Nacional</h3>'
+        . '<p>Com estúdio próprio e equipamentos profissionais, realizo gravações de voz com alta qualidade técnica, garantindo excelente resultado para empresas que precisam de uma comunicação eficiente e profissional.</p>'
+        . '<p>Solicite um orçamento e descubra como uma voz humana e profissional pode valorizar sua marca, sua campanha e seus projetos de comunicação.</p>';
+}
+
+function locutora_render_hero_block(array $attributes): string {
+    $eyebrow = $attributes['eyebrow'] ?? 'Locutora.com';
+    $title = $attributes['title'] ?? 'Gravações profissionais';
+    $subtitle = $attributes['subtitle'] ?? 'Adriana Rosa';
+    $uri = get_template_directory_uri();
+
+    ob_start(); ?>
+    <section class="hero" id="hero">
+      <?php foreach ([1, 2, 3] as $index) : ?>
+        <video class="hero__video<?php echo $index === 1 ? ' is-active' : ''; ?>" <?php echo $index === 1 ? 'autoplay ' : ''; ?>muted playsinline preload="metadata" aria-hidden="true">
+          <source src="<?php echo esc_url($uri . '/assets/video/vitrine-' . $index . '.mp4'); ?>" type="video/mp4">
+        </video>
+      <?php endforeach; ?>
+      <div class="hero__overlay" aria-hidden="true"></div>
+      <div class="hero__content">
+        <p class="hero__eyebrow"><?php echo esc_html($eyebrow); ?></p>
+        <h1 class="hero__title serif"><?php echo esc_html($title); ?></h1>
+        <p class="hero__sub"><?php echo esc_html($subtitle); ?></p>
+      </div>
+    </section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_render_intro_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Locutora.com';
+    $content = $attributes['content'] ?? locutora_intro_block_default_content();
+    $button_label = $attributes['buttonLabel'] ?? 'Conheça';
+
+    ob_start(); ?>
+    <section class="legacy-intro" id="sobre">
+      <div class="legacy-intro__copy reveal reveal--slide-top">
+        <h2 class="section-title"><?php echo esc_html($title); ?></h2>
+        <?php echo wp_kses_post($content); ?>
+        <a href="<?php echo esc_url(home_url('/sobre-nos/')); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
+      </div>
+      <figure class="legacy-intro__portrait reveal reveal--fade">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/intro.png'); ?>" alt="Adriana Rosa, locutora profissional">
+      </figure>
+    </section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_render_services_block(array $attributes): string {
+    $title = $attributes['title'] ?? 'Fazemos gravações para:';
+    $fallback = [
+        [$attributes['item1'] ?? 'Comerciais', 'servico-comerciais.webp'],
+        [$attributes['item2'] ?? 'Emissoras de rádio e tv', 'servico-tv.webp'],
+        [$attributes['item3'] ?? 'Conteúdos para internet', 'servico-internet.webp'],
+        [$attributes['item4'] ?? 'E muito mais', 'servico-mais.webp'],
+    ];
+    $posts = get_posts(['post_type' => 'servico', 'numberposts' => 4, 'orderby' => 'menu_order title', 'order' => 'ASC']);
+    $services = $posts ? array_map(static fn ($item) => [$item->post_title, 'servico-mais.webp'], $posts) : $fallback;
+
+    ob_start(); ?>
+    <section class="services" id="servicos">
+      <h2 class="section-title reveal reveal--fade"><?php echo esc_html($title); ?></h2>
+      <div class="services-grid">
+        <?php foreach ($services as [$service_title, $icon]) : ?>
+          <a class="service-item reveal reveal--fade" href="<?php echo esc_url(home_url('/servicos/')); ?>">
+            <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/' . $icon); ?>" alt="">
+            <h3 class="service-item__title"><?php echo esc_html($service_title); ?></h3>
+          </a>
+        <?php endforeach; ?>
+      </div>
+    </section>
+    <?php return (string) ob_get_clean();
+}
+
+function locutora_render_contact_cta_block(array $attributes): string {
+    $heading = $attributes['heading'] ?? "Entre em contato\ncom Adriana Rosa";
+    $button_label = $attributes['buttonLabel'] ?? 'Contato';
+
+    ob_start(); ?>
+    <section class="cta-block" id="contato">
+      <video autoplay muted loop playsinline preload="metadata" aria-hidden="true">
+        <source src="<?php echo esc_url(get_template_directory_uri() . '/assets/video/contato.mp4'); ?>" type="video/mp4">
+      </video>
+      <div class="cta-block__shade"></div>
+      <div class="cta-block__content reveal reveal--fade">
+        <h2><?php echo nl2br(esc_html($heading)); ?></h2>
+        <a href="<?php echo esc_url(home_url('/contato/')); ?>" class="btn-outline"><?php echo esc_html($button_label); ?></a>
+      </div>
+    </section>
+    <?php return (string) ob_get_clean();
+}
+
+add_action('init', function (): void {
+    $version = wp_get_theme()->get('Version');
+    wp_register_script(
+        'locutora-blocks-editor',
+        get_template_directory_uri() . '/assets/js/blocks-editor.js',
+        ['wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render'],
+        $version,
+        true
+    );
+
+    $blocks = [
+        'locutora/hero' => [
+            'render_callback' => 'locutora_render_hero_block',
+            'attributes' => [
+                'eyebrow' => ['type' => 'string', 'default' => 'Locutora.com'],
+                'title' => ['type' => 'string', 'default' => 'Gravações profissionais'],
+                'subtitle' => ['type' => 'string', 'default' => 'Adriana Rosa'],
+            ],
+        ],
+        'locutora/intro' => [
+            'render_callback' => 'locutora_render_intro_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Locutora.com'],
+                'content' => ['type' => 'string', 'default' => locutora_intro_block_default_content()],
+                'buttonLabel' => ['type' => 'string', 'default' => 'Conheça'],
+            ],
+        ],
+        'locutora/services' => [
+            'render_callback' => 'locutora_render_services_block',
+            'attributes' => [
+                'title' => ['type' => 'string', 'default' => 'Fazemos gravações para:'],
+                'item1' => ['type' => 'string', 'default' => 'Comerciais'],
+                'item2' => ['type' => 'string', 'default' => 'Emissoras de rádio e tv'],
+                'item3' => ['type' => 'string', 'default' => 'Conteúdos para internet'],
+                'item4' => ['type' => 'string', 'default' => 'E muito mais'],
+            ],
+        ],
+        'locutora/contact-cta' => [
+            'render_callback' => 'locutora_render_contact_cta_block',
+            'attributes' => [
+                'heading' => ['type' => 'string', 'default' => "Entre em contato\ncom Adriana Rosa"],
+                'buttonLabel' => ['type' => 'string', 'default' => 'Contato'],
+            ],
+        ],
+    ];
+
+    foreach ($blocks as $name => $settings) {
+        register_block_type($name, array_merge($settings, [
+            'api_version' => 3,
+            'editor_script' => 'locutora-blocks-editor',
+        ]));
+    }
 });
 
 /* ─── CPT: Demo de áudio ─── */
