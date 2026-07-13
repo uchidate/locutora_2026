@@ -494,11 +494,11 @@ add_action('init', function (): void {
 }, 101);
 
 add_filter('rank_math/opengraph/facebook/image', function ($image) {
-    return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
+    return $image ?: (string) locutora_setting('social_image', get_template_directory_uri() . '/assets/images/intro.png');
 });
 
 add_filter('rank_math/opengraph/twitter/image', function ($image) {
-    return $image ?: get_template_directory_uri() . '/assets/images/intro.png';
+    return $image ?: (string) locutora_setting('social_image', get_template_directory_uri() . '/assets/images/intro.png');
 });
 
 add_filter('robots_txt', function (string $output): string {
@@ -1154,16 +1154,91 @@ add_filter('acf/settings/save_json', function () {
     return get_stylesheet_directory() . '/acf-json';
 });
 
-/* ─── Options Page (ACF free suporta desde v6.x) ─── */
-add_action('acf/init', function () {
-    if (function_exists('acf_add_options_page')) {
-        acf_add_options_page([
-            'page_title' => 'Configurações do site',
-            'menu_title' => 'Configurações',
-            'menu_slug'  => 'locutora-settings',
-            'capability' => 'manage_options',
-        ]);
+/* ─── Configurações estruturadas com ACF gratuito ─── */
+add_action('init', function (): void {
+    register_post_type('locutora_config', [
+        'labels' => [
+            'name' => 'Configurações do site',
+            'singular_name' => 'Configurações do site',
+            'edit_item' => 'Editar configurações do site',
+        ],
+        'public' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'menu_icon' => 'dashicons-admin-settings',
+        'supports' => ['title'],
+        'capability_type' => 'page',
+        'map_meta_cap' => true,
+    ]);
+}, 9);
+
+function locutora_config_post_id(): int {
+    $saved_id = (int) get_option('locutora_config_post_id', 0);
+    $saved_post = $saved_id > 0 ? get_post($saved_id) : null;
+    if ($saved_post instanceof WP_Post && $saved_post->post_type === 'locutora_config') {
+        return $saved_id;
     }
+    $posts = get_posts([
+        'post_type' => 'locutora_config',
+        'post_status' => 'private',
+        'numberposts' => 1,
+        'fields' => 'ids',
+    ]);
+    $post_id = isset($posts[0]) ? (int) $posts[0] : 0;
+    if ($post_id > 0) {
+        update_option('locutora_config_post_id', $post_id, false);
+    }
+    return $post_id;
+}
+
+add_action('init', function (): void {
+    if (!post_type_exists('locutora_config') || locutora_config_post_id() > 0) {
+        return;
+    }
+    $post_id = wp_insert_post([
+        'post_type' => 'locutora_config',
+        'post_status' => 'private',
+        'post_title' => 'Configurações da Locutora',
+    ]);
+    if (!is_wp_error($post_id) && $post_id > 0) {
+        update_option('locutora_config_post_id', (int) $post_id, false);
+    }
+}, 20);
+
+function locutora_setting(string $field, $fallback = '') {
+    $post_id = locutora_config_post_id();
+    if ($post_id > 0 && function_exists('get_field')) {
+        $value = get_field($field, $post_id);
+        if ($value !== null && $value !== '' && $value !== false) {
+            return $value;
+        }
+    }
+    return $fallback;
+}
+
+add_action('acf/init', function (): void {
+    if (!function_exists('acf_add_local_field_group')) {
+        return;
+    }
+    acf_add_local_field_group([
+        'key' => 'group_locutora_site_settings',
+        'title' => 'Dados exibidos no site',
+        'fields' => [
+            ['key' => 'field_locutora_footer_logo', 'label' => 'Logo do rodapé', 'name' => 'footer_logo', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
+            ['key' => 'field_locutora_phone', 'label' => 'Telefone', 'name' => 'contact_phone', 'type' => 'text', 'default_value' => '(11) 98440-4171'],
+            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site'],
+            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
+            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
+            ['key' => 'field_locutora_linkedin', 'label' => 'LinkedIn', 'name' => 'linkedin_url', 'type' => 'url', 'default_value' => 'https://www.linkedin.com/in/adrianarosa-voiceover/'],
+            ['key' => 'field_locutora_instagram', 'label' => 'Instagram', 'name' => 'instagram_url', 'type' => 'url', 'default_value' => 'https://www.instagram.com/adriana.rosa_s'],
+            ['key' => 'field_locutora_youtube', 'label' => 'YouTube', 'name' => 'youtube_url', 'type' => 'url', 'default_value' => 'https://www.youtube.com/adrianalocutoracom'],
+            ['key' => 'field_locutora_copyright', 'label' => 'Ano dos direitos autorais', 'name' => 'copyright_year', 'type' => 'number', 'default_value' => 2026, 'min' => 2004, 'max' => 2100],
+            ['key' => 'field_locutora_social_image', 'label' => 'Imagem social padrão', 'name' => 'social_image', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
+        ],
+        'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'locutora_config']]],
+        'position' => 'normal',
+        'style' => 'seamless',
+    ]);
 });
 
 /* ─── Formulário de contato ─── */
