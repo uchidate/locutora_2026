@@ -1,5 +1,19 @@
 <?php get_header(); ?>
 
+<?php
+if (have_posts()) {
+  the_post();
+  $page_blocks = trim((string) get_the_content());
+  if ($page_blocks !== '' && has_blocks($page_blocks)) {
+    echo '<main>';
+    echo apply_filters('the_content', $page_blocks);
+    echo '</main>';
+    get_footer();
+    return;
+  }
+}
+?>
+
 <main>
   <section class="page-hero">
     <p class="hero__eyebrow">Orçamento</p>

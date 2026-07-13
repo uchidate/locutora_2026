@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 5;
+const LOCUTORA_SITE_CONFIG_VERSION = 6;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -156,11 +156,25 @@ function locutora_seed_internal_blocks(): void {
             '<!-- wp:locutora/internal-hero {"title":"Contato","variant":"contact"} /-->',
             '<!-- wp:locutora/contact-form /-->',
         ],
+        'orcamento' => [
+            '<!-- wp:locutora/budget-hero /-->',
+            '<!-- wp:locutora/budget-intro /-->',
+        ],
     ];
 
     foreach ($pages as $slug => $blocks) {
         $page = get_page_by_path($slug, OBJECT, 'page');
-        if (!$page instanceof WP_Post || trim((string) $page->post_content) !== '') {
+        if (!$page instanceof WP_Post) {
+            continue;
+        }
+
+        $current_content = trim((string) $page->post_content);
+        if ($slug === 'orcamento' && preg_match('/^\[contact-form-7\b[^\]]+\]$/', $current_content)) {
+            $blocks[] = "<!-- wp:shortcode -->\n" . $current_content . "\n<!-- /wp:shortcode -->";
+            $current_content = '';
+        }
+
+        if ($current_content !== '') {
             continue;
         }
 
@@ -514,6 +528,20 @@ function locutora_render_contact_form_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
+function locutora_render_budget_hero_block(array $attributes): string {
+    $eyebrow = $attributes['eyebrow'] ?? 'Orçamento';
+    $title = $attributes['title'] ?? 'Vamos trabalhar juntos?';
+    $subtitle = $attributes['subtitle'] ?? 'Preencha o formulário abaixo e responderei em até 24h com proposta e prazo.';
+    return '<section class="page-hero"><p class="hero__eyebrow">' . esc_html($eyebrow) . '</p>'
+        . '<h1 class="page-hero__title serif">' . esc_html($title) . '</h1>'
+        . '<p class="page-hero__sub">' . esc_html($subtitle) . '</p></section>';
+}
+
+function locutora_render_budget_intro_block(array $attributes): string {
+    $content = $attributes['content'] ?? 'Quanto mais detalhar o projeto — tipo, duração, tom e prazo —, mais preciso será o orçamento. Mas se ainda estiver na fase de levantamento, sem problema: me conta a ideia e conversamos.';
+    return '<div class="page-orcamento"><p class="orcamento-intro">' . wp_kses_post($content) . '</p></div>';
+}
+
 add_action('init', function (): void {
     $version = wp_get_theme()->get('Version');
     wp_register_script(
@@ -618,6 +646,20 @@ add_action('init', function (): void {
                 'subjectLabel' => ['type' => 'string', 'default' => 'Assunto *'],
                 'messageLabel' => ['type' => 'string', 'default' => 'Mensagem'],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Enviar mensagem'],
+            ],
+        ],
+        'locutora/budget-hero' => [
+            'render_callback' => 'locutora_render_budget_hero_block',
+            'attributes' => [
+                'eyebrow' => ['type' => 'string', 'default' => 'Orçamento'],
+                'title' => ['type' => 'string', 'default' => 'Vamos trabalhar juntos?'],
+                'subtitle' => ['type' => 'string', 'default' => 'Preencha o formulário abaixo e responderei em até 24h com proposta e prazo.'],
+            ],
+        ],
+        'locutora/budget-intro' => [
+            'render_callback' => 'locutora_render_budget_intro_block',
+            'attributes' => [
+                'content' => ['type' => 'string', 'default' => 'Quanto mais detalhar o projeto — tipo, duração, tom e prazo —, mais preciso será o orçamento. Mas se ainda estiver na fase de levantamento, sem problema: me conta a ideia e conversamos.'],
             ],
         ],
     ];
