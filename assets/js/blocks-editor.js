@@ -13,6 +13,7 @@
   const TextControl = components.TextControl;
   const TextareaControl = components.TextareaControl;
   const RichText = blockEditor.RichText;
+  const SelectControl = components.SelectControl;
   const MediaUpload = blockEditor.MediaUpload;
   const MediaUploadCheck = blockEditor.MediaUploadCheck;
   const ServerSideRender = serverSideRender;
@@ -83,10 +84,20 @@
           tagName: 'div',
           value: value,
           onChange: update,
-          allowedFormats: ['core/bold', 'core/italic', 'core/link'],
+          allowedFormats: ['core/bold', 'core/italic', 'core/link', 'core/strikethrough'],
           placeholder: field.label,
         })
       );
+    }
+
+    if (field.options) {
+      return el(SelectControl, {
+        key: field.name,
+        label: field.label,
+        value: value,
+        options: field.options,
+        onChange: update,
+      });
     }
 
     const Control = field.multiline ? TextareaControl : TextControl;
@@ -139,7 +150,9 @@
       alwaysEdit: true,
       fields: [
         { name: 'eyebrow', label: 'Linha superior' },
-        { name: 'title', label: 'Título' },
+        { name: 'title', label: 'Título', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'subtitle', label: 'Subtítulo' },
       ],
     },
@@ -149,7 +162,9 @@
       icon: 'welcome-write-blog',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Título' },
+        { name: 'title', label: 'Título', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'content', label: 'Texto da apresentação', richtext: true },
         { name: 'buttonLabel', label: 'Texto do botão' },
         { name: 'buttonUrl', label: 'Destino do botão' },
@@ -163,7 +178,9 @@
       icon: 'megaphone',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Título' },
+        { name: 'title', label: 'Título', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'item1', label: 'Serviço 1' },
         { name: 'item2', label: 'Serviço 2' },
         { name: 'item3', label: 'Serviço 3' },
@@ -181,7 +198,9 @@
       icon: 'email-alt',
       alwaysEdit: true,
       fields: [
-        { name: 'heading', label: 'Chamada', multiline: true, rows: 3 },
+        { name: 'heading', label: 'Chamada', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento da chamada', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte da chamada', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'buttonLabel', label: 'Texto do botão' },
         { name: 'buttonUrl', label: 'Destino do botão' },
         { name: 'videoUrl', label: 'Vídeo de fundo', media: true, allowedTypes: ['video'] },
@@ -193,7 +212,9 @@
       icon: 'cover-image',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Título da página' },
+        { name: 'title', label: 'Título da página', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'backgroundUrl', label: 'Imagem de fundo', media: true },
       ],
     },
@@ -203,7 +224,9 @@
       icon: 'book-alt',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Título', multiline: true, rows: 2 },
+        { name: 'title', label: 'Título', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'missionTitle', label: 'Título: Missão' },
         { name: 'missionText', label: 'Texto da missão', multiline: true, rows: 4 },
         { name: 'visionTitle', label: 'Título: Visão' },
@@ -220,7 +243,9 @@
       icon: 'admin-users',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Nome' },
+        { name: 'title', label: 'Nome', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'paragraph1', label: 'Biografia — parágrafo 1', multiline: true, rows: 5 },
         { name: 'paragraph2', label: 'Biografia — parágrafo 2', multiline: true, rows: 5 },
         { name: 'paragraph3', label: 'Biografia — parágrafo 3', multiline: true, rows: 5 },
@@ -237,7 +262,9 @@
       icon: 'grid-view',
       alwaysEdit: true,
       fields: [
-        { name: 'title', label: 'Título' },
+        { name: 'title', label: 'Título', richtext: true },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'images', label: 'Logotipos', gallery: true },
       ],
     },
@@ -246,7 +273,9 @@
       title: 'Locutora — Áudios e vídeos',
       icon: 'playlist-audio',
       fields: [
-        { name: 'title', label: 'Título da seção', multiline: true, rows: 3, help: 'Use uma nova linha para controlar a quebra do título.' },
+        { name: 'title', label: 'Título da seção', richtext: true, help: 'Use Enter para controlar a quebra do título e a barra do campo para aplicar negrito ou itálico.' },
+        { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
+        { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'soundcloudUrl', label: 'Link do SoundCloud', url: true, help: 'Cole o link normal do perfil, faixa ou playlist. O player é criado automaticamente.' },
         { name: 'youtubeUrl', label: 'Link do YouTube', url: true, help: 'Cole o link normal de um vídeo ou playlist. O player é criado automaticamente.' },
         { name: 'backgroundUrl', label: 'Imagem de fundo', media: true },

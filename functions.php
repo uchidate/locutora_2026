@@ -612,6 +612,46 @@ function locutora_intro_block_default_content(): string {
         . '<p>Solicite um orçamento e descubra como uma voz humana e profissional pode valorizar sua marca, sua campanha e seus projetos de comunicação.</p>';
 }
 
+function locutora_rich_heading(string $text, bool $preserve_lines = false): string {
+    if ($preserve_lines && !preg_match('/<br\s*\/?>/i', $text)) {
+        $text = nl2br($text);
+    }
+
+    return wp_kses($text, [
+        'strong' => [],
+        'b' => [],
+        'em' => [],
+        'i' => [],
+        'br' => [],
+    ]);
+}
+
+function locutora_heading_style(array $attributes): string {
+    $alignments = ['left', 'center', 'right'];
+    $fonts = [
+        'montserrat' => "'Montserrat', Arial, sans-serif",
+        'arial' => 'Arial, sans-serif',
+        'georgia' => "Georgia, 'Times New Roman', serif",
+    ];
+    $styles = [];
+    $alignment = (string) ($attributes['titleAlign'] ?? '');
+    $font = (string) ($attributes['titleFont'] ?? '');
+
+    if (in_array($alignment, $alignments, true)) {
+        $styles[] = 'text-align:' . $alignment;
+    }
+    if (isset($fonts[$font])) {
+        $styles[] = 'font-family:' . $fonts[$font];
+    }
+
+    return implode(';', $styles);
+}
+
+function locutora_heading_style_attribute(array $attributes): string {
+    $style = locutora_heading_style($attributes);
+    return $style !== '' ? ' style="' . esc_attr($style) . '"' : '';
+}
+
 function locutora_render_hero_block(array $attributes): string {
     $eyebrow = $attributes['eyebrow'] ?? 'Locutora.com';
     $title = $attributes['title'] ?? 'Gravações profissionais';
@@ -628,7 +668,7 @@ function locutora_render_hero_block(array $attributes): string {
       <div class="hero__overlay" aria-hidden="true"></div>
       <div class="hero__content">
         <p class="hero__eyebrow"><?php echo esc_html($eyebrow); ?></p>
-        <h1 class="hero__title serif"><?php echo esc_html($title); ?></h1>
+        <h1 class="hero__title serif"<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h1>
         <p class="hero__sub"><?php echo esc_html($subtitle); ?></p>
       </div>
     </section>
@@ -648,7 +688,7 @@ function locutora_render_intro_block(array $attributes): string {
     ob_start(); ?>
     <section class="legacy-intro" id="sobre">
       <div class="legacy-intro__copy reveal reveal--slide-top">
-        <h2 class="section-title"><?php echo esc_html($title); ?></h2>
+        <h2 class="section-title"<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
         <?php echo wp_kses_post($content); ?>
         <a href="<?php echo esc_url($button_url); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
       </div>
@@ -672,7 +712,7 @@ function locutora_render_services_block(array $attributes): string {
 
     ob_start(); ?>
     <section class="services" id="servicos">
-      <h2 class="section-title reveal reveal--fade"><?php echo esc_html($title); ?></h2>
+      <h2 class="section-title reveal reveal--fade"<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
       <div class="services-grid">
         <?php foreach ($services as [$service_title, $icon_url, $fallback_icon]) : ?>
           <a class="service-item reveal reveal--fade" href="<?php echo esc_url($services_url); ?>">
@@ -700,7 +740,7 @@ function locutora_render_contact_cta_block(array $attributes): string {
       </video>
       <div class="cta-block__shade"></div>
       <div class="cta-block__content reveal reveal--fade">
-        <h2><?php echo nl2br(esc_html($heading)); ?></h2>
+        <h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $heading, true); ?></h2>
         <a href="<?php echo esc_url($button_url); ?>" class="btn-outline"><?php echo esc_html($button_label); ?></a>
       </div>
     </section>
@@ -714,7 +754,7 @@ function locutora_render_internal_hero_block(array $attributes): string {
     $style = $background_url ? ' style="background-image:url(' . esc_url($background_url) . ')"' : '';
 
     return '<section class="internal-hero internal-hero--' . esc_attr($variant) . '"' . $style . '>'
-        . '<div class="internal-hero__inner"><h1>' . esc_html($title) . '</h1></div></section>';
+        . '<div class="internal-hero__inner"><h1' . locutora_heading_style_attribute($attributes) . '>' . locutora_rich_heading((string) $title) . '</h1></div></section>';
 }
 
 function locutora_about_story_default_content(): string {
@@ -732,7 +772,7 @@ function locutora_render_about_story_block(array $attributes): string {
     $image_alt = $attributes['imageAlt'] ?? 'Mesa de áudio de estúdio profissional';
     ob_start(); ?>
     <section class="about-story about-story--history"><div class="about-story__row">
-      <div class="about-story__copy reveal reveal--slide-top"><h2><?php echo nl2br(esc_html($title)); ?></h2>
+      <div class="about-story__copy reveal reveal--slide-top"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title, true); ?></h2>
         <?php if ($uses_legacy_content) : ?>
           <?php echo wp_kses_post($legacy_content); ?>
         <?php else : ?>
@@ -774,7 +814,7 @@ function locutora_render_about_bio_block(array $attributes): string {
     ob_start(); ?>
     <section class="about-story about-story--bio"><div class="about-bio__row">
       <figure class="about-bio__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
-      <div class="about-bio__copy reveal reveal--slide-bottom"><h2><?php echo esc_html($title); ?></h2>
+      <div class="about-bio__copy reveal reveal--slide-bottom"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
         <?php if ($uses_legacy_content) : echo wp_kses_post($legacy_content); else : ?>
           <?php foreach ($paragraphs as $index => $paragraph) : ?><p><?php echo esc_html($attributes['paragraph' . ($index + 1)] ?? $paragraph); ?></p><?php endforeach; ?>
         <?php endif; ?>
@@ -813,7 +853,7 @@ function locutora_render_brands_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Conheça as marcas que já trabalhou';
     $images = !empty($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
     ob_start(); ?>
-    <section class="brand-showcase"><h2><?php echo esc_html($title); ?></h2><div class="brand-grid">
+    <section class="brand-showcase"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2><div class="brand-grid">
       <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url(locutora_brand_asset_url((string) $url)); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
     </div></section>
     <?php return (string) ob_get_clean();
@@ -860,7 +900,7 @@ function locutora_render_audio_showcase_block(array $attributes): string {
     $background_url = trim((string) ($attributes['backgroundUrl'] ?? ''));
     $section_style = $background_url !== '' ? 'background-image:url(' . esc_url_raw($background_url) . ')' : '';
     ob_start(); ?>
-    <section class="audio-showcase"<?php echo $section_style !== '' ? ' style="' . esc_attr($section_style) . '"' : ''; ?>><h2><?php echo nl2br(esc_html($title)); ?></h2><div class="audio-showcase__grid">
+    <section class="audio-showcase"<?php echo $section_style !== '' ? ' style="' . esc_attr($section_style) . '"' : ''; ?>><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title, true); ?></h2><div class="audio-showcase__grid">
       <iframe title="Demos de Adriana Rosa no SoundCloud" loading="lazy" allow="autoplay" src="<?php echo esc_url($soundcloud); ?>"></iframe>
       <iframe title="Vídeos de locução institucional" loading="lazy" src="<?php echo esc_url($youtube); ?>" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </div></section>
@@ -1005,6 +1045,8 @@ add_action('init', function (): void {
     ];
 
     foreach ($blocks as $name => $settings) {
+        $settings['attributes']['titleAlign'] = ['type' => 'string', 'default' => ''];
+        $settings['attributes']['titleFont'] = ['type' => 'string', 'default' => ''];
         register_block_type($name, array_merge($settings, [
             'api_version' => 3,
             'editor_script' => 'locutora-blocks-editor',
