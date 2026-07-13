@@ -783,9 +783,18 @@ function locutora_render_about_bio_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
+function locutora_brand_asset_url(string $url): string {
+    $brand_directory_url = get_template_directory_uri() . '/assets/images/brands/';
+    if (!str_starts_with($url, $brand_directory_url)) {
+        return $url;
+    }
+
+    return add_query_arg('ver', wp_get_theme()->get('Version'), remove_query_arg('ver', $url));
+}
+
 function locutora_default_brand_urls(): array {
     $names = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
-    return array_map(static fn(string $name): string => get_template_directory_uri() . '/assets/images/brands/' . $name . '.png', $names);
+    return array_map(static fn(string $name): string => locutora_brand_asset_url(get_template_directory_uri() . '/assets/images/brands/' . $name . '.png'), $names);
 }
 
 function locutora_render_brands_block(array $attributes): string {
@@ -793,7 +802,7 @@ function locutora_render_brands_block(array $attributes): string {
     $images = !empty($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
     ob_start(); ?>
     <section class="brand-showcase"><h2><?php echo esc_html($title); ?></h2><div class="brand-grid">
-      <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url($url); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
+      <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url(locutora_brand_asset_url((string) $url)); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
     </div></section>
     <?php return (string) ob_get_clean();
 }
