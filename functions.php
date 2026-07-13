@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 11;
+const LOCUTORA_SITE_CONFIG_VERSION = 12;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -343,16 +343,27 @@ function locutora_configure_rank_math_identity(): void {
 }
 
 function locutora_install_rank_math_seo(): void {
-    if (get_option('locutora_rank_math_install_status') === 'active') {
-        return;
-    }
-
     require_once ABSPATH . 'wp-admin/includes/plugin.php';
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
     require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 
     $plugin_file = 'seo-by-rank-math/rank-math.php';
+    $yoast = 'wordpress-seo/wp-seo.php';
+
+    if (is_plugin_active($plugin_file)) {
+        locutora_apply_rank_math_metadata();
+        locutora_configure_rank_math_identity();
+        if (is_plugin_active($yoast)) {
+            deactivate_plugins($yoast, true);
+        }
+        if (file_exists(WP_PLUGIN_DIR . '/' . $yoast)) {
+            delete_plugins([$yoast]);
+        }
+        update_option('locutora_rank_math_install_status', 'active');
+        return;
+    }
+
     if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_file)) {
         $api = plugins_api('plugin_information', [
             'slug' => 'seo-by-rank-math',
@@ -371,8 +382,16 @@ function locutora_install_rank_math_seo(): void {
         }
     }
 
+    $yoast_was_active = is_plugin_active($yoast);
+    if ($yoast_was_active) {
+        deactivate_plugins($yoast, true);
+    }
+
     $activated = activate_plugin($plugin_file);
-    if (is_wp_error($activated)) {
+    if (is_wp_error($activated) || !is_plugin_active($plugin_file)) {
+        if ($yoast_was_active && file_exists(WP_PLUGIN_DIR . '/' . $yoast)) {
+            activate_plugin($yoast);
+        }
         update_option('locutora_rank_math_install_status', 'erro-ativacao');
         return;
     }
@@ -380,10 +399,6 @@ function locutora_install_rank_math_seo(): void {
     locutora_apply_rank_math_metadata();
     locutora_configure_rank_math_identity();
 
-    $yoast = 'wordpress-seo/wp-seo.php';
-    if (is_plugin_active($yoast)) {
-        deactivate_plugins($yoast, true);
-    }
     if (file_exists(WP_PLUGIN_DIR . '/' . $yoast)) {
         delete_plugins([$yoast]);
     }
@@ -393,7 +408,8 @@ function locutora_install_rank_math_seo(): void {
 add_action('locutora_install_rank_math_seo', 'locutora_install_rank_math_seo');
 
 add_action('init', function (): void {
-    if (get_option('locutora_rank_math_install_status') !== 'active'
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    if (!is_plugin_active('seo-by-rank-math/rank-math.php')
         && !wp_next_scheduled('locutora_install_rank_math_seo')) {
         wp_schedule_single_event(time() + 5, 'locutora_install_rank_math_seo');
     }
