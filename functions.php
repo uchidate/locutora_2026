@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 8;
+const LOCUTORA_SITE_CONFIG_VERSION = 9;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -241,6 +241,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_privacy_blocks();
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
+    locutora_apply_yoast_metadata();
 
     $english_privacy = get_post(3);
     if ($english_privacy instanceof WP_Post
@@ -281,6 +282,94 @@ function locutora_is_temporary_environment(): bool {
     $host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
     return str_ends_with($host, '.hostingersite.com');
 }
+
+add_action('init', function (): void {
+    $expected = locutora_is_temporary_environment() ? 0 : 1;
+    if ((int) get_option('blog_public', 0) !== $expected) {
+        update_option('blog_public', $expected);
+    }
+}, 98);
+
+function locutora_apply_yoast_metadata(): void {
+    $metadata = [
+        'home' => [
+            'title' => 'Home - Locutora',
+            'description' => 'Fundada em 2004 pela radialista, locutora profissional e atriz Adriana Rosa, a Locutora.com oferece serviços de locução profissional e voice over em português.',
+        ],
+        'sobre-nos' => [
+            'title' => 'Locutora Adriana Rosa - Locutora',
+            'description' => 'Conheça Adriana Rosa, locutora profissional especializada em URA, comerciais e institucionais. Saiba mais sobre sua experiência e trabalhos.',
+        ],
+        'servicos' => [
+            'title' => 'Áudios - Locutora',
+            'description' => 'Locutora profissional Adriana Rosa. Ouça alguns trabalhos.',
+        ],
+        'contato' => [
+            'title' => 'Contato - Locutora',
+            'description' => 'Entre em contato com Locutora.com - Adriana Rosa (11) 98440-4171.',
+        ],
+        'politica-de-privacidade' => [
+            'title' => 'Política de privacidade - Locutora',
+            'description' => 'Política de privacidade e proteção de dados da Locutora.com.',
+        ],
+    ];
+
+    foreach ($metadata as $slug => $values) {
+        $page = get_page_by_path($slug, OBJECT, 'page');
+        if (!$page instanceof WP_Post) {
+            continue;
+        }
+        update_post_meta($page->ID, '_yoast_wpseo_title', $values['title']);
+        update_post_meta($page->ID, '_yoast_wpseo_metadesc', $values['description']);
+    }
+}
+
+function locutora_install_yoast_seo(): void {
+    if (get_option('locutora_yoast_install_status') === 'active') {
+        return;
+    }
+
+    require_once ABSPATH . 'wp-admin/includes/plugin.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+    require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+
+    $plugin_file = 'wordpress-seo/wp-seo.php';
+    if (!file_exists(WP_PLUGIN_DIR . '/' . $plugin_file)) {
+        $api = plugins_api('plugin_information', [
+            'slug' => 'wordpress-seo',
+            'fields' => ['sections' => false],
+        ]);
+        if (is_wp_error($api) || empty($api->download_link)) {
+            update_option('locutora_yoast_install_status', 'erro-api');
+            return;
+        }
+
+        $upgrader = new Plugin_Upgrader(new Automatic_Upgrader_Skin());
+        $installed = $upgrader->install($api->download_link);
+        if (is_wp_error($installed) || $installed !== true) {
+            update_option('locutora_yoast_install_status', 'erro-instalacao');
+            return;
+        }
+    }
+
+    $activated = activate_plugin($plugin_file);
+    if (is_wp_error($activated)) {
+        update_option('locutora_yoast_install_status', 'erro-ativacao');
+        return;
+    }
+
+    locutora_apply_yoast_metadata();
+    update_option('locutora_yoast_install_status', 'active');
+}
+add_action('locutora_install_yoast_seo', 'locutora_install_yoast_seo');
+
+add_action('init', function (): void {
+    if (get_option('locutora_yoast_install_status') !== 'active'
+        && !wp_next_scheduled('locutora_install_yoast_seo')) {
+        wp_schedule_single_event(time() + 5, 'locutora_install_yoast_seo');
+    }
+}, 100);
 
 add_filter('wp_robots', function (array $robots): array {
     if (locutora_is_temporary_environment()) {
