@@ -923,7 +923,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 /* ═══ Páginas internas — réplica Joomla/YOOtheme ═══ */
 .internal-page { background: #242424; }
 .internal-hero { position: relative; height: 230px; background-position: center; background-size: cover; isolation: isolate; }
-.internal-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(186, 115, 0, .67); mix-blend-mode: multiply; }
+.internal-hero::before { content: ''; position: absolute; inset: 0; z-index: -1; background: rgba(30, 18, 0, .62); mix-blend-mode: multiply; }
 .internal-hero--sobre { background-image: url('../images/internal/sobre-hero.png'); }
 .internal-hero--services { background-image: url('../images/internal/servicos-hero.png'); }
 .internal-hero--contact { background-image: url('../images/internal/contato-hero.png'); }
