@@ -932,7 +932,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .internal-hero h1::before { content: ''; position: absolute; left: 0; top: 7px; width: 7px; height: 31px; background: rgba(255,255,255,.24); }
 
 .about-story { position: relative; min-height: 1940px; padding: 70px 0 110px; color: #fff; background-color: rgba(237,156,24,.78); overflow: hidden; }
-.about-story::before { content: ''; position: absolute; inset: 0; z-index: 0; background-color: rgba(237,156,24,.78); background-image: url('../images/fundo-1.png'); background-position: center; background-size: cover; background-attachment: fixed; background-blend-mode: soft-light; filter: blur(6px); transform: scale(1.02); }
+.about-story::before { content: ''; position: absolute; inset: 0; z-index: 0; background-color: rgba(237,156,24,.78); background-image: url('../images/fundo-1.png'); background-position: center; background-size: cover; background-attachment: fixed; background-blend-mode: soft-light; filter: blur(3px); transform: scale(1.02); }
 .about-story > * { position: relative; z-index: 1; }
 .about-story--history { min-height: 650px; padding-bottom: 0; }
 .about-story--bio { min-height: 1290px; padding-top: 0; }
