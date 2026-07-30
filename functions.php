@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 19;
+const LOCUTORA_SITE_CONFIG_VERSION = 20;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
