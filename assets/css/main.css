@@ -840,7 +840,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .cta-block__content { width: 100%; margin: auto 0 0; }
 .cta-block__content h2 { max-width: 600px; font-size: 42px; }
 
-.site-footer__main { padding-top: 150px; padding-bottom: 45px; }
+.site-footer__main { padding-top: 55px; padding-bottom: 45px; }
 .site-footer__brand img { width: 200px; }
 .site-footer__brand { position: relative; display: block; width: 200px; }
 .site-footer__column h2 { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #ddd; font-size: 28px; }
@@ -1139,7 +1139,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 
 .cta-block { min-height: 620px; margin: 0 0 -90px; padding: 60px max(40px, calc((100vw - 1200px) / 2)) 105px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 90px), 50% 100%, 0 calc(100% - 90px)); }
 .cta-block__content { width: 100%; margin: auto 0 0; }
-.site-footer__main { padding-top: 150px; }
+.site-footer__main { padding-top: 55px; }
 .site-footer__brand img { width: 200px; }
 
 @media (max-width: 700px) {
