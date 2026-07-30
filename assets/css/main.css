@@ -955,8 +955,8 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .brand-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 22px; align-items: center; }
 .brand-grid img { width: 100%; max-width: 90px; margin: auto; }
 
-.audio-showcase { padding: 70px max(40px, calc((100vw - 1200px) / 2)) 90px; background-color: rgba(237,156,24,.76); background-image: url('../images/fundo-1.png'); background-size: cover; background-blend-mode: difference; }
-.audio-showcase h2 { margin: 0 0 42px; padding-bottom: 16px; border-bottom: 1px solid #fff; color: #fff; font-size: clamp(32px, 3.4vw, 48px); font-weight: 400; line-height: 1.18; }
+.audio-showcase { padding: 70px max(40px, calc((100vw - 1200px) / 2)) 90px; background-color: rgba(237,156,24,.76); background-image: linear-gradient(0deg, rgba(18, 52, 96, 0) 61%, rgba(237, 156, 24, 1) 100%), url('../images/fundo-1.png'); background-size: cover; background-blend-mode: normal, difference; }
+.audio-showcase h2 { display: inline-block; margin: 0 0 42px; padding: 20px 28px 20px; border-bottom: 1px solid #fff; color: #fff; font-size: clamp(32px, 3.4vw, 48px); font-weight: 400; line-height: 1.18; background: rgba(0,0,0,.5); border-radius: 4px; }
 .audio-showcase__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
 .audio-showcase iframe { width: 100%; height: 425px; border: 0; background: #111; }
 
