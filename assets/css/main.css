@@ -752,7 +752,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   background: #090a0a;
 }
 .site-logo img { width: 150px; }
-.site-nav { gap: 38px; color: #3f3f41; font-size: 15px; letter-spacing: .15em; text-transform: uppercase; }
+.site-nav { gap: 38px; color: #6b6b6f; font-size: 15px; letter-spacing: .15em; text-transform: uppercase; }
 .site-nav .current-menu-item > a,
 .home .site-nav li:first-child > a { color: #ed9c18; }
 .site-menu-toggle { display: none; }
