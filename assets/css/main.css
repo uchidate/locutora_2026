@@ -765,7 +765,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   padding: 60px 30px 140px;
   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 120px), 50% 100%, 0 calc(100% - 120px));
 }
-.hero__overlay { background: rgba(0, 0, 0, .52); }
+.hero__overlay { background: rgba(0, 0, 0, .25); }
 .hero__eyebrow { margin-bottom: 12px; font-size: 24px; letter-spacing: .07em; }
 .hero__content { transform: translateY(-28px); }
 .hero__title { max-width: 1015px; margin-bottom: 12px; font-size: 72px; line-height: 1; letter-spacing: 5px; }
@@ -798,7 +798,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   background-attachment: fixed;
   background-blend-mode: normal, difference;
 }
-.legacy-intro__copy { padding: 40px 44px; margin-right: 40px; background: #7a5310; border-radius: 4px; }
+.legacy-intro__copy { padding: 40px 44px; margin-right: 40px; background: rgba(0,0,0,.5); border-radius: 4px; }
 .legacy-intro .section-title { padding-left: 25px; position: relative; font-size: 25px; line-height: 30px; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
 .legacy-intro .section-title::before { content: ''; position: absolute; left: 0; top: 3px; width: 6px; height: 24px; background: #fff; }
 .legacy-intro__copy h3 { margin: 25px 0 18px; color: #fff; font-size: 21px; line-height: 1.3; letter-spacing: .025em; text-transform: uppercase; text-shadow: 0 1px 4px rgba(255,255,255,.25); }
@@ -1115,7 +1115,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   background-blend-mode: normal, difference;
 }
 .legacy-intro .section-title { padding-left: 25px; color: #fff; font-size: 25px; line-height: 30px; text-shadow: 0 2px 10px rgba(0,0,0,.45); }
-.legacy-intro__copy { padding: 40px 44px; margin-right: 40px; background: #7a5310; border-radius: 4px; }
+.legacy-intro__copy { padding: 40px 44px; margin-right: 40px; background: rgba(0,0,0,.5); border-radius: 4px; }
 .legacy-intro__copy h3 { margin: 25px 0 18px; color: #fff; font-size: 21px; line-height: 1.3; letter-spacing: .025em; text-transform: uppercase; }
 .legacy-intro__copy p, .legacy-intro__copy li { color: #fff; font-size: 16px; line-height: 1.62; }
 .legacy-intro__portrait { position: sticky; top: 170px; margin: 0; padding: 0 15px 15px 40px; border-left: 1px solid rgba(255,255,255,.75); }
