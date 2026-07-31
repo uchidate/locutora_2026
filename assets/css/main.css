@@ -875,17 +875,23 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 }
 
 @media (max-width: 700px) {
-  .site-header { height: 110px; min-height: 110px; justify-content: center; padding: 0 15px; }
-  .site-logo img { width: 100px; }
-  .site-menu-toggle { position: absolute; left: 15px; top: 50%; display: flex; flex-direction: column; gap: 5px; width: 28px; padding: 0; transform: translateY(-50%); background: none; border: 0; }
+  .site-header {
+    --hdr: 0;
+    height: calc(110px - 46px * var(--hdr));
+    min-height: calc(110px - 46px * var(--hdr));
+    justify-content: center;
+    padding: 0 15px;
+    transition: height .12s linear, min-height .12s linear, justify-content .2s ease, gap .2s ease;
+  }
+  .site-logo img { width: calc(100px - 44px * var(--hdr)); transition: width .12s linear; }
+  .site-menu-toggle { position: absolute; left: 15px; top: 50%; display: flex; flex-direction: column; gap: 5px; width: 28px; padding: 0; transform: translateY(-50%); background: none; border: 0; opacity: calc(1 - var(--hdr)); transition: opacity .2s ease; }
   .site-menu-toggle span { display: block; width: 20px; height: 1px; background: #8b8b8b; }
   .site-nav { position: absolute; z-index: 20; top: 110px; left: 0; right: 0; display: none; flex-direction: column; gap: 0; width: 100%; padding: 14px 22px; transform: none; background: #090a0a; }
   nav.site-nav.is-open, ul.site-nav.is-open, .site-nav:has(ul.is-open) { display: flex; }
   .site-nav li { padding: 13px 0; }
 
-  .site-header.is-compact { height: 64px; min-height: 64px; justify-content: flex-start; gap: 18px; transition: height .25s ease; }
-  .site-header.is-compact .site-logo img { width: 56px; transition: width .25s ease; }
-  .site-header.is-compact .site-menu-toggle { display: none; }
+  .site-header.is-compact { justify-content: flex-start; gap: 18px; }
+  .site-header.is-compact .site-menu-toggle { pointer-events: none; }
   .site-header.is-compact nav#site-navigation .site-nav,
   .site-header.is-compact .site-nav {
     position: static;
@@ -895,9 +901,12 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     width: auto;
     padding: 0;
     background: transparent;
+    opacity: 0;
+    animation: compact-nav-in .28s ease forwards;
   }
   .site-header.is-compact .site-nav li { padding: 0; }
   .site-header.is-compact .site-nav a { font-size: 12px; letter-spacing: .02em; white-space: nowrap; }
+  @keyframes compact-nav-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
   .hero { height: 560px; min-height: 560px; margin-bottom: 0; padding: 40px 15px 80px; clip-path: none; }
   .hero__video { object-position: center; }
