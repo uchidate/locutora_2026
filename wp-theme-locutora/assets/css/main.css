@@ -883,8 +883,8 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   nav.site-nav.is-open, ul.site-nav.is-open, .site-nav:has(ul.is-open) { display: flex; }
   .site-nav li { padding: 13px 0; }
 
-  .site-header.is-compact { height: 64px; min-height: 64px; justify-content: space-between; transition: height .25s ease; }
-  .site-header.is-compact .site-logo img { width: 60px; transition: width .25s ease; }
+  .site-header.is-compact { height: 64px; min-height: 64px; justify-content: flex-start; gap: 18px; transition: height .25s ease; }
+  .site-header.is-compact .site-logo img { width: 56px; transition: width .25s ease; }
   .site-header.is-compact .site-menu-toggle { display: none; }
   .site-header.is-compact nav#site-navigation .site-nav,
   .site-header.is-compact .site-nav {
@@ -897,7 +897,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     background: transparent;
   }
   .site-header.is-compact .site-nav li { padding: 0; }
-  .site-header.is-compact .site-nav a { font-size: 10px; letter-spacing: .05em; white-space: nowrap; }
+  .site-header.is-compact .site-nav a { font-size: 12px; letter-spacing: .02em; white-space: nowrap; }
 
   .hero { height: 560px; min-height: 560px; margin-bottom: 0; padding: 40px 15px 80px; clip-path: none; }
   .hero__video { object-position: center; }
