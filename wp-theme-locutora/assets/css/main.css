@@ -887,12 +887,15 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     min-height: calc(110px - 46px * var(--hdr));
     justify-content: center;
     padding: 0 15px;
-    transition: height .12s linear, min-height .12s linear;
   }
   body.home .site-header { --hdr: 0; }
-  .site-logo { transform: translateX(calc(var(--hdr) * -1 * (50vw - 43px))); transition: transform .12s linear; }
-  .site-logo img { width: calc(100px - 44px * var(--hdr)); transition: width .12s linear; }
-  .site-menu-toggle { position: absolute; left: 15px; top: 50%; display: flex; flex-direction: column; gap: 5px; width: 28px; padding: 0; transform: translateY(-50%); background: none; border: 0; opacity: calc(1 - var(--hdr)); transition: opacity .2s ease; }
+  html.js-anim-ready .site-header { transition: height .12s linear, min-height .12s linear; }
+  .site-logo { transform: translateX(calc(var(--hdr) * -1 * (50vw - 43px))); }
+  html.js-anim-ready .site-logo { transition: transform .12s linear; }
+  .site-logo img { width: calc(100px - 44px * var(--hdr)); }
+  html.js-anim-ready .site-logo img { transition: width .12s linear; }
+  .site-menu-toggle { position: absolute; left: 15px; top: 50%; display: flex; flex-direction: column; gap: 5px; width: 28px; padding: 0; transform: translateY(-50%); background: none; border: 0; opacity: calc(1 - var(--hdr)); }
+  html.js-anim-ready .site-menu-toggle { transition: opacity .2s ease; }
   .site-menu-toggle span { display: block; width: 20px; height: 1px; background: #8b8b8b; }
   .site-nav { position: absolute; z-index: 20; top: 110px; left: 0; right: 0; display: none; flex-direction: column; gap: 0; width: 100%; padding: 14px 22px; transform: none; background: #090a0a; }
   nav.site-nav.is-open, ul.site-nav.is-open, .site-nav:has(ul.is-open) { display: flex; }
@@ -914,6 +917,11 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     padding: 0;
     background: transparent;
     opacity: var(--hdr);
+  }
+  html.js-anim-ready .site-header.is-compact nav#site-navigation .site-nav,
+  html.js-anim-ready .site-header.is-compact .site-nav,
+  html.js-anim-ready body:not(.home) nav#site-navigation .site-nav,
+  html.js-anim-ready body:not(.home) .site-nav {
     transition: opacity .1s linear;
   }
   .site-header.is-compact .site-nav li,
