@@ -898,12 +898,12 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .legacy-link { background: transparent; border: 1px solid #fff; color: #fff; }
 
   .services { padding: 28px 15px 40px; overflow: hidden; }
-  .services > .section-title { margin: 0 0 42px; font-size: 28px; line-height: 1.2; white-space: normal; transform: none; }
+  .services > .section-title { margin: 0 0 42px; font-size: clamp(18px, 6.2vw, 28px); line-height: 1.2; white-space: nowrap; transform: none; }
   .services-grid { grid-template-columns: repeat(4, calc(100vw - 30px)); gap: 30px; width: calc(100vw - 30px); max-width: none; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
   .services-grid::-webkit-scrollbar { display: none; }
   .service-item { min-height: 240px; scroll-snap-align: start; }
 
-  .cta-block { min-height: 590px; margin-bottom: -48px; padding: 60px 38px 105px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 50% 100%, 0 calc(100% - 48px)); }
+  .cta-block { min-height: 320px; margin-bottom: -48px; padding: 45px 30px 90px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 50% 100%, 0 calc(100% - 48px)); }
   .cta-block__content { margin-top: auto; }
   .cta-block__content h2 { font-size: 22px; }
   .cta-block__content .btn-outline { display: none; }
@@ -1159,10 +1159,10 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .legacy-intro__portrait { display: none; }
   .legacy-link { background: transparent; border: 1px solid #fff; color: #fff; }
   .services { padding: 28px 15px 40px; overflow: hidden; }
-  .services > .section-title { margin: 0 0 42px; font-size: 28px; line-height: 1.2; white-space: normal; transform: none; }
+  .services > .section-title { margin: 0 0 42px; font-size: clamp(18px, 6.2vw, 28px); line-height: 1.2; white-space: nowrap; transform: none; }
   .services-grid { grid-template-columns: repeat(4, calc(100vw - 30px)); gap: 30px; width: calc(100vw - 30px); max-width: none; overflow-x: auto; scroll-snap-type: x mandatory; }
   .service-item { min-height: 240px; scroll-snap-align: start; }
-  .cta-block { min-height: 590px; margin-bottom: -48px; padding: 60px 38px 105px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 50% 100%, 0 calc(100% - 48px)); }
+  .cta-block { min-height: 320px; margin-bottom: -48px; padding: 45px 30px 90px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 50% 100%, 0 calc(100% - 48px)); }
   .site-footer__main { display: block; padding: 110px 15px 55px; }
   .site-footer__brand { display: block; margin: 0 auto 70px; width: max-content; }
 }
