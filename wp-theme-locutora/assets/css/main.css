@@ -883,7 +883,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   nav.site-nav.is-open, ul.site-nav.is-open, .site-nav:has(ul.is-open) { display: flex; }
   .site-nav li { padding: 13px 0; }
 
-  .hero { height: 750px; min-height: 750px; margin-bottom: 0; padding: 40px 15px 80px; clip-path: none; }
+  .hero { height: 560px; min-height: 560px; margin-bottom: 0; padding: 40px 15px 80px; clip-path: none; }
   .hero__video { object-position: center; }
   .hero__eyebrow { font-size: 20px; }
   .hero__title { font-size: 31px; line-height: 1.05; letter-spacing: .1em; }
@@ -898,7 +898,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .legacy-link { background: transparent; border: 1px solid #fff; color: #fff; }
 
   .services { padding: 28px 15px 40px; overflow: hidden; }
-  .services > .section-title { margin: 0 0 42px; font-size: 36px; line-height: 1.1; white-space: nowrap; transform: translateX(38px); }
+  .services > .section-title { margin: 0 0 42px; font-size: 28px; line-height: 1.2; white-space: normal; transform: none; }
   .services-grid { grid-template-columns: repeat(4, calc(100vw - 30px)); gap: 30px; width: calc(100vw - 30px); max-width: none; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
   .services-grid::-webkit-scrollbar { display: none; }
   .service-item { min-height: 240px; scroll-snap-align: start; }
@@ -1092,7 +1092,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .hero__title { font-size: clamp(38px, 12vw, 60px); }
   .cta-block__content h2 { font-size: 34px; }
   .site-header { min-height: 82px; }
-  .hero { min-height: calc(100svh - 82px); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 38px), 50% 100%, 0 calc(100% - 38px)); margin-bottom: -38px; }
+  .hero { min-height: calc(72svh - 82px); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 38px), 50% 100%, 0 calc(100% - 38px)); margin-bottom: -38px; }
   .legacy-intro { padding-top: 110px; }
   .site-footer__main { grid-template-columns: 1fr; padding-top: 52px; }
   .site-footer__brand { grid-column: auto; }
@@ -1159,7 +1159,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .legacy-intro__portrait { display: none; }
   .legacy-link { background: transparent; border: 1px solid #fff; color: #fff; }
   .services { padding: 28px 15px 40px; overflow: hidden; }
-  .services > .section-title { margin: 0 0 42px; font-size: 36px; line-height: 1.1; white-space: nowrap; transform: translateX(38px); }
+  .services > .section-title { margin: 0 0 42px; font-size: 28px; line-height: 1.2; white-space: normal; transform: none; }
   .services-grid { grid-template-columns: repeat(4, calc(100vw - 30px)); gap: 30px; width: calc(100vw - 30px); max-width: none; overflow-x: auto; scroll-snap-type: x mandatory; }
   .service-item { min-height: 240px; scroll-snap-align: start; }
   .cta-block { min-height: 590px; margin-bottom: -48px; padding: 60px 38px 105px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 48px), 50% 100%, 0 calc(100% - 48px)); }
