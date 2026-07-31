@@ -5,6 +5,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const backToTop = document.querySelector('.back-to-top-float');
+  if (backToTop) {
+    const updateBackToTop = () => {
+      backToTop.classList.toggle('is-visible', window.scrollY > 400);
+    };
+    updateBackToTop();
+    window.addEventListener('scroll', updateBackToTop, { passive: true });
+  }
+
   const menuButton = document.querySelector('.site-menu-toggle');
   const menu = document.querySelector('.site-nav');
   menuButton?.addEventListener('click', () => {
