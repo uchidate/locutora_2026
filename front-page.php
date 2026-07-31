@@ -63,7 +63,7 @@ $hero_dur = function_exists('get_field')
 
 <!-- ══ APRESENTAÇÃO ══ -->
 <section class="legacy-intro" id="sobre">
-  <div class="legacy-intro__copy reveal reveal--slide-top">
+  <div class="legacy-intro__copy">
     <h2 class="section-title"><?php echo esc_html(get_theme_mod('locutora_intro_titulo', 'Locutora.com')); ?></h2>
     <h3>Locutora Profissional | Gravação de voz para publicidade, TV, rádio e URA</h3>
     <p><strong>Se você procura uma locutora profissional para dar mais credibilidade e impacto à comunicação da sua empresa, está no lugar certo.</strong></p>
