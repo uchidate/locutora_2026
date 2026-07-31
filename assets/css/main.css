@@ -851,8 +851,9 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .site-footer__column h2 { width: 100%; padding-bottom: 12px; border-bottom: 1px solid #ddd; font-size: 28px; }
 .site-footer__column a { font-size: 16px; }
 .site-footer__legal { padding-top: 20px; padding-bottom: 20px; font-size: 15px; }
-.whatsapp-float { position: fixed; right: 40px; bottom: 38px; z-index: 300; display: grid; place-items: center; width: 60px; height: 60px; border: 3px solid rgba(255,255,255,.6); border-radius: 50%; color: #fff; background: #17d876; box-shadow: 0 2px 5px rgba(0,0,0,.22); }
-.whatsapp-float svg { width: 32px; height: 32px; }
+.back-to-top-float { position: fixed; right: 40px; bottom: 38px; z-index: 300; display: grid; place-items: center; width: 54px; height: 54px; border: 1px solid rgba(255,255,255,.25); border-radius: 50%; color: #fff; background: rgba(9,10,10,.88); box-shadow: 0 2px 8px rgba(0,0,0,.3); opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
+.back-to-top-float svg { width: 24px; height: 24px; fill: currentColor; }
+.back-to-top-float.is-visible { opacity: 1; pointer-events: auto; transform: none; }
 
 .mobile-contact-bar { display: none; }
 .cookie-consent {
@@ -969,12 +970,11 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .site-footer__legal { display: block; padding: 22px 15px 75px; font-size: 16px; }
   .site-footer__legal span[aria-hidden] { display: none; }
   .site-footer__legal a { display: block; }
-  .whatsapp-float { right: 16px; bottom: 108px; width: 50px; height: 50px; }
-  .whatsapp-float svg { width: 26px; height: 26px; }
-  body { padding-bottom: 92px; }
+  .back-to-top-float { right: 16px; bottom: 78px; width: 46px; height: 46px; }
+  .back-to-top-float svg { width: 20px; height: 20px; }
+  body { padding-bottom: 62px; }
   .mobile-contact-bar {
     display: flex;
-    flex-direction: column;
     position: fixed;
     left: 0;
     right: 0;
@@ -982,35 +982,24 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     z-index: 250;
     background: #090a0a;
     border-top: 1px solid rgba(255,255,255,.1);
-    padding: 6px 10px 8px;
+    padding: 8px 10px;
+    gap: 8px;
   }
-  .mobile-contact-bar__socials {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 5px 0 7px;
-    border-bottom: 1px solid rgba(255,255,255,.08);
-    margin-bottom: 7px;
-  }
-  .mobile-contact-bar__socials a { color: rgba(255,255,255,.6); }
-  .mobile-contact-bar__socials svg { width: 17px; height: 17px; fill: currentColor; }
-  .mobile-contact-bar__actions { display: flex; gap: 6px; }
   .mobile-contact-bar__item {
     flex: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 9px 4px;
+    gap: 7px;
+    padding: 11px 8px;
     border-radius: 8px;
     background: rgba(255,255,255,.08);
     color: #fff;
-    font: 600 10.5px/1 'Montserrat', sans-serif;
+    font: 600 12.5px/1 'Montserrat', sans-serif;
     text-decoration: none;
     text-align: center;
   }
-  .mobile-contact-bar__item svg { flex: none; width: 16px; height: 16px; fill: currentColor; }
+  .mobile-contact-bar__item svg { flex: none; width: 17px; height: 17px; fill: currentColor; }
   .mobile-contact-bar__item--whatsapp { background: #17d876; color: #0a1f13; }
 }
 
