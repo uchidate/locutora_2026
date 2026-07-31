@@ -9,14 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const header = document.querySelector('.site-header');
   if (header) {
+    const isHome = document.body.classList.contains('home');
     const range = 80;
     const updateCompact = () => {
-      const progress = Math.min(Math.max(window.scrollY / range, 0), 1);
+      const progress = isHome
+        ? Math.min(Math.max(window.scrollY / range, 0), 1)
+        : 1;
       header.style.setProperty('--hdr', String(progress));
       header.classList.toggle('is-compact', progress > 0.03);
     };
     updateCompact();
-    window.addEventListener('scroll', updateCompact, { passive: true });
+    if (isHome) window.addEventListener('scroll', updateCompact, { passive: true });
   }
 
   const revealItems = Array.from(document.querySelectorAll('.reveal'));
