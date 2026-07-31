@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     menu?.classList.toggle('is-open', !open);
   });
 
+  const header = document.querySelector('.site-header');
+  if (header) {
+    const updateCompact = () => {
+      header.classList.toggle('is-compact', window.scrollY > 40);
+    };
+    updateCompact();
+    window.addEventListener('scroll', updateCompact, { passive: true });
+  }
+
   const revealItems = Array.from(document.querySelectorAll('.reveal'));
   if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     document.documentElement.classList.add('reveal-ready');
