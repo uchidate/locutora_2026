@@ -969,11 +969,12 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .site-footer__legal { display: block; padding: 22px 15px 75px; font-size: 16px; }
   .site-footer__legal span[aria-hidden] { display: none; }
   .site-footer__legal a { display: block; }
-  .whatsapp-float { right: 16px; bottom: 78px; width: 50px; height: 50px; }
+  .whatsapp-float { right: 16px; bottom: 108px; width: 50px; height: 50px; }
   .whatsapp-float svg { width: 26px; height: 26px; }
-  body { padding-bottom: 62px; }
+  body { padding-bottom: 92px; }
   .mobile-contact-bar {
     display: flex;
+    flex-direction: column;
     position: fixed;
     left: 0;
     right: 0;
@@ -981,8 +982,19 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
     z-index: 250;
     background: #090a0a;
     border-top: 1px solid rgba(255,255,255,.1);
-    padding: 8px 10px;
+    padding: 6px 10px 8px;
   }
+  .mobile-contact-bar__socials {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 5px 0 7px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    margin-bottom: 7px;
+  }
+  .mobile-contact-bar__socials a { color: rgba(255,255,255,.6); }
+  .mobile-contact-bar__socials svg { width: 17px; height: 17px; fill: currentColor; }
+  .mobile-contact-bar__actions { display: flex; }
   .mobile-contact-bar__item {
     flex: 1;
     display: flex;
