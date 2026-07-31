@@ -986,7 +986,9 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .internal-hero__inner { width: calc(100% - 30px); }
   .internal-hero h1 { font-size: 30px; }
   .about-story { min-height: 0; padding: 0; background-attachment: scroll; }
-  .about-story__row, .about-bio__row { grid-template-columns: 1fr; width: 100%; }
+  .about-story--history { min-height: 0; }
+  .about-story--bio { min-height: 0; }
+  .about-story__row, .about-bio__row { grid-template-columns: 1fr; width: 100%; min-height: 0; }
   .about-story__copy { padding: 60px 20px; }
   .about-story__copy h2 { font-size: 32px; }
   .about-story__image { padding: 30px 20px 60px; border: 0; }
