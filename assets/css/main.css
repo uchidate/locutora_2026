@@ -898,7 +898,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .site-nav li { padding: 13px 0; }
 
   .site-header.is-compact .site-menu-toggle { pointer-events: none; }
-  .site-header.is-compact nav#site-navigation { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
+  .site-header.is-compact nav#site-navigation { position: absolute; left: calc(50% + 30px); top: 50%; transform: translate(-50%, -50%); }
   .site-header.is-compact nav#site-navigation .site-nav,
   .site-header.is-compact .site-nav {
     position: static;
