@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      document.documentElement.classList.add('js-anim-ready');
+    });
+  });
+
   const menuButton = document.querySelector('.site-menu-toggle');
   const menu = document.querySelector('.site-nav');
   menuButton?.addEventListener('click', () => {
