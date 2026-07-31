@@ -853,6 +853,8 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .site-footer__legal { padding-top: 20px; padding-bottom: 20px; font-size: 15px; }
 .whatsapp-float { position: fixed; right: 40px; bottom: 38px; z-index: 300; display: grid; place-items: center; width: 60px; height: 60px; border: 3px solid rgba(255,255,255,.6); border-radius: 50%; color: #fff; background: #17d876; box-shadow: 0 2px 5px rgba(0,0,0,.22); }
 .whatsapp-float svg { width: 32px; height: 32px; }
+
+.mobile-contact-bar { display: none; }
 .cookie-consent {
   position: fixed;
   z-index: 1200;
@@ -967,7 +969,36 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .site-footer__legal { display: block; padding: 22px 15px 75px; font-size: 16px; }
   .site-footer__legal span[aria-hidden] { display: none; }
   .site-footer__legal a { display: block; }
-  .whatsapp-float { right: 38px; bottom: 34px; }
+  .whatsapp-float { right: 16px; bottom: 78px; width: 50px; height: 50px; }
+  .whatsapp-float svg { width: 26px; height: 26px; }
+  body { padding-bottom: 62px; }
+  .mobile-contact-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 250;
+    background: #090a0a;
+    border-top: 1px solid rgba(255,255,255,.1);
+    padding: 8px 10px;
+  }
+  .mobile-contact-bar__item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 8px;
+    border-radius: 8px;
+    color: #fff;
+    font: 600 13px/1 'Montserrat', sans-serif;
+    text-decoration: none;
+    text-align: center;
+  }
+  .mobile-contact-bar__item svg { flex: none; width: 18px; height: 18px; fill: currentColor; }
+  .mobile-contact-bar__item:first-child { background: rgba(255,255,255,.08); margin-right: 6px; }
+  .mobile-contact-bar__item--whatsapp { background: #17d876; color: #0a1f13; }
 }
 
 /* ═══ Páginas internas — réplica Joomla/YOOtheme ═══ */
