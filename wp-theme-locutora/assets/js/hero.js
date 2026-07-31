@@ -9,8 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const header = document.querySelector('.site-header');
   if (header) {
+    const range = 80;
     const updateCompact = () => {
-      header.classList.toggle('is-compact', window.scrollY > 40);
+      const progress = Math.min(Math.max(window.scrollY / range, 0), 1);
+      header.style.setProperty('--hdr', String(progress));
+      header.classList.toggle('is-compact', progress > 0.5);
     };
     updateCompact();
     window.addEventListener('scroll', updateCompact, { passive: true });
