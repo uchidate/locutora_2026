@@ -57,6 +57,18 @@ $copyright_year = (int) locutora_setting('copyright_year', 2026);
   <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.1 3a12.7 12.7 0 0 0-10.9 19.2L3.4 29l7-1.8A12.7 12.7 0 1 0 16.1 3Zm0 23.2c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.1 1.1 1.1-4-.3-.4a10.4 10.4 0 1 1 9.1 5Zm5.7-7.8c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1-2-.8-3.4-2.3-4.4-4-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 3 0 1.7 1.3 3.4 1.4 3.7.2.2 2.5 3.8 6 5.3.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4Z"/></svg>
 </a>
 
+<?php $contact_phone_digits = preg_replace('/\D+/', '', $contact_phone); ?>
+<nav class="mobile-contact-bar" aria-label="Contato rápido">
+  <a class="mobile-contact-bar__item" href="tel:+55<?php echo esc_attr($contact_phone_digits); ?>">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.4 21 3 13.6 3 4.5c0-.6.4-1 1-1h3.4c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1L6.6 10.8Z"/></svg>
+    <span>Ligar agora</span>
+  </a>
+  <a class="mobile-contact-bar__item mobile-contact-bar__item--whatsapp" href="<?php echo esc_url($whatsapp_url); ?>" target="_blank" rel="noopener">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.1 3a12.7 12.7 0 0 0-10.9 19.2L3.4 29l7-1.8A12.7 12.7 0 1 0 16.1 3Zm0 23.2c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.1 1.1 1.1-4-.3-.4a10.4 10.4 0 1 1 9.1 5Zm5.7-7.8c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1-2-.8-3.4-2.3-4.4-4-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 3 0 1.7 1.3 3.4 1.4 3.7.2.2 2.5 3.8 6 5.3.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.2-.3-.2-.6-.4Z"/></svg>
+    <span>WhatsApp</span>
+  </a>
+</nav>
+
 <?php wp_footer(); ?>
 </body>
 </html>
