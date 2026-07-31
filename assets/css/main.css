@@ -1032,7 +1032,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
 .privacy-page__content a { color: #9f6506; }
 
 @media (max-width: 800px) {
-  .internal-hero { height: 270px; }
+  .internal-hero { height: 170px; }
   .internal-hero__inner { width: calc(100% - 30px); }
   .internal-hero h1 { font-size: 30px; }
   .about-story { min-height: 0; padding: 0; background-attachment: scroll; }
@@ -1051,7 +1051,7 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   .brand-showcase h2 { font-size: 28px; }
   .brand-grid { grid-template-columns: repeat(3, 1fr); }
   .audio-showcase, .contact-section { padding: 55px 15px; }
-  .audio-showcase h2 { font-size: 28px; }
+  .audio-showcase h2 { font-size: 20px; padding: 14px 18px; }
   .audio-showcase h2 br { display: none; }
   .audio-showcase__grid { grid-template-columns: 1fr; }
   .audio-showcase iframe { height: 300px; }
