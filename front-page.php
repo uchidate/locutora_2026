@@ -118,6 +118,11 @@ $hero_dur = function_exists('get_field')
       </a>
     <?php endforeach; ?>
   </div>
+  <div class="services-dots" aria-hidden="true">
+    <?php foreach (array_slice($servicos, 0, 4) as $index => $item) : ?>
+      <span class="services-dots__item<?php echo $index === 0 ? ' is-active' : ''; ?>"></span>
+    <?php endforeach; ?>
+  </div>
 </section>
 
 <!-- ══ CONTATO ══ -->
