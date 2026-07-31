@@ -994,22 +994,23 @@ body { background: #fff; color: #252525; font-family: 'Montserrat', Arial, sans-
   }
   .mobile-contact-bar__socials a { color: rgba(255,255,255,.6); }
   .mobile-contact-bar__socials svg { width: 17px; height: 17px; fill: currentColor; }
-  .mobile-contact-bar__actions { display: flex; }
+  .mobile-contact-bar__actions { display: flex; gap: 6px; }
   .mobile-contact-bar__item {
     flex: 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 11px 8px;
+    gap: 4px;
+    padding: 9px 4px;
     border-radius: 8px;
+    background: rgba(255,255,255,.08);
     color: #fff;
-    font: 600 13px/1 'Montserrat', sans-serif;
+    font: 600 10.5px/1 'Montserrat', sans-serif;
     text-decoration: none;
     text-align: center;
   }
-  .mobile-contact-bar__item svg { flex: none; width: 18px; height: 18px; fill: currentColor; }
-  .mobile-contact-bar__item:first-child { background: rgba(255,255,255,.08); margin-right: 6px; }
+  .mobile-contact-bar__item svg { flex: none; width: 16px; height: 16px; fill: currentColor; }
   .mobile-contact-bar__item--whatsapp { background: #17d876; color: #0a1f13; }
 }
 

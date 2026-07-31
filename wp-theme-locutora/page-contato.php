@@ -19,7 +19,7 @@ if (have_posts()) {
     <div class="internal-hero__inner"><h1>Contato</h1></div>
   </section>
 
-  <section class="contact-section">
+  <section class="contact-section" id="formulario">
     <form class="contact-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
       <input type="hidden" name="action" value="locutora_contact">
       <?php wp_nonce_field('locutora_contact', 'locutora_contact_nonce'); ?>
