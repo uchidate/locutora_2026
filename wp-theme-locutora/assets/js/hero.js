@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateCompact = () => {
       const progress = Math.min(Math.max(window.scrollY / range, 0), 1);
       header.style.setProperty('--hdr', String(progress));
-      header.classList.toggle('is-compact', progress > 0.5);
+      header.classList.toggle('is-compact', progress > 0.03);
     };
     updateCompact();
     window.addEventListener('scroll', updateCompact, { passive: true });
@@ -34,6 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
     revealItems.forEach((item) => item.classList.add('is-revealed'));
   }
 
+  const heroSection = document.querySelector('.hero');
+  const firstVideo = document.querySelector('.hero__video');
+  if (heroSection && firstVideo) {
+    const markVideoReady = () => heroSection.classList.add('is-video-ready');
+    if (firstVideo.readyState >= 2) {
+      markVideoReady();
+    } else {
+      firstVideo.addEventListener('loadeddata', markVideoReady, { once: true });
+    }
+    window.setTimeout(markVideoReady, 1200);
+  }
+
   const videos = Array.from(document.querySelectorAll('.hero__video'));
   if (videos.length < 2) return;
 
@@ -51,14 +63,29 @@ document.addEventListener('DOMContentLoaded', () => {
   videos[0].play().catch(() => {});
 
   const services = document.querySelector('.services-grid');
+  const dots = Array.from(document.querySelectorAll('.services-dots__item'));
   if (services) {
     let serviceIndex = 0;
+    const setActiveDot = (index) => {
+      dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
+    };
     window.setInterval(() => {
       const cards = services.querySelectorAll('.service-item');
       if (cards.length < 2) return;
       serviceIndex = (serviceIndex + 1) % cards.length;
       const card = cards[serviceIndex];
       services.scrollTo({ left: card.offsetLeft - services.offsetLeft, behavior: 'smooth' });
+      setActiveDot(serviceIndex);
     }, 4500);
+    dots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        const cards = services.querySelectorAll('.service-item');
+        const card = cards[index];
+        if (!card) return;
+        serviceIndex = index;
+        services.scrollTo({ left: card.offsetLeft - services.offsetLeft, behavior: 'smooth' });
+        setActiveDot(index);
+      });
+    });
   }
 });
