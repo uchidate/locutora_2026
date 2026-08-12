@@ -1887,11 +1887,20 @@ add_action('init', function () {
 	        .locutora-manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 1100px; }
 	        .locutora-manual-card { padding: 18px; background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #b86f00; }
 	        .locutora-manual-card h2 { margin-top: 0; }
-	        .locutora-history-list { margin: 0; }
-	        .locutora-history-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f0f0f1; }
-	        .locutora-history-list span { color: #646970; }
-	    </style>';
-	});
+		        .locutora-history-list { margin: 0; }
+		        .locutora-history-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f0f0f1; }
+		        .locutora-history-list span { color: #646970; }
+		        .locutora-seo-panel { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(280px, 0.9fr); gap: 18px; }
+		        .locutora-seo-panel label { display: block; margin: 0 0 8px; font-weight: 600; }
+		        .locutora-seo-panel input,
+		        .locutora-seo-panel textarea { margin-bottom: 14px; }
+		        .locutora-google-preview { padding: 16px; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; }
+		        .locutora-google-preview__url { color: #202124; font-size: 12px; }
+		        .locutora-google-preview__title { margin: 6px 0 4px; color: #1a0dab; font-size: 18px; line-height: 1.25; }
+		        .locutora-google-preview__description { color: #4d5156; font-size: 13px; line-height: 1.45; }
+		        .locutora-seo-hint { padding: 12px; background: #fff8e5; border-left: 4px solid #b86f00; }
+		    </style>';
+		});
 
 	add_action('edit_form_after_title', function (WP_Post $post): void {
 	    if ($post->post_type !== 'page') {
@@ -1967,18 +1976,37 @@ add_action('init', function () {
 	    echo '<div class="notice notice-info"><p><strong>Imagens e vídeos:</strong> mantenha nomes claros, evite enviar o mesmo arquivo várias vezes e use imagens leves sempre que possível.</p></div>';
 	});
 
-	add_action('add_meta_boxes_page', function (): void {
-	    add_meta_box('locutora_simple_seo', 'SEO simples', function (WP_Post $post): void {
-	        wp_nonce_field('locutora_simple_seo', 'locutora_simple_seo_nonce');
-	        $title = (string) get_post_meta($post->ID, 'rank_math_title', true);
-	        $description = (string) get_post_meta($post->ID, 'rank_math_description', true);
-	        echo '<p><label for="locutora_seo_title"><strong>Título no Google</strong></label></p>';
-	        echo '<input id="locutora_seo_title" name="locutora_seo_title" type="text" class="widefat" maxlength="70" value="' . esc_attr($title) . '" placeholder="Ex: Locutora profissional Adriana Rosa">';
-	        echo '<p><label for="locutora_seo_description"><strong>Descrição no Google</strong></label></p>';
-	        echo '<textarea id="locutora_seo_description" name="locutora_seo_description" class="widefat" rows="3" maxlength="160" placeholder="Resumo curto da página.">' . esc_textarea($description) . '</textarea>';
-	        echo '<p class="description">Sugestão: título com até 70 caracteres e descrição com até 160 caracteres.</p>';
-	    }, 'page', 'side', 'high');
-	});
+		add_action('add_meta_boxes_page', function (): void {
+		    add_meta_box('locutora_simple_seo', 'Como esta página aparece no Google', function (WP_Post $post): void {
+		        wp_nonce_field('locutora_simple_seo', 'locutora_simple_seo_nonce');
+		        $title = (string) get_post_meta($post->ID, 'rank_math_title', true);
+		        $description = (string) get_post_meta($post->ID, 'rank_math_description', true);
+		        $preview_title = $title ?: $post->post_title . ' - Locutora';
+		        $preview_description = $description ?: 'Resumo curto da página para aparecer nos resultados do Google.';
+		        $h1_hints = [
+		            'home' => 'O H1 da Home fica no bloco “Locutora — Hero”, campo “Título principal da Home (H1)”. Para preservar o ranking atual, mantenha “Locutora.com” ou algo muito próximo.',
+		            'sobre-nos' => 'O H1 fica no bloco “Cabeçalho interno”. No texto da página, mantenha experiência, serviços e marcas atendidas.',
+		            'servicos' => 'O H1 fica no bloco “Cabeçalho interno”. Use termos próximos de “Áudios”, “locução”, “URA”, “rádio”, “TV” e “institucional”.',
+		            'contato' => 'O H1 fica no bloco “Cabeçalho interno”. Mantenha claro que esta é a página de contato da Locutora.com.',
+		            'politica-de-privacidade' => 'O H1 é “Política de Privacidade”. Evite trocar por um título genérico.',
+		        ];
+		        echo '<div class="locutora-seo-panel">';
+		        echo '<div>';
+		        echo '<label for="locutora_seo_title">Título no Google</label>';
+		        echo '<input id="locutora_seo_title" name="locutora_seo_title" type="text" class="widefat" maxlength="70" value="' . esc_attr($title) . '" placeholder="Ex: Locutora profissional Adriana Rosa">';
+		        echo '<label for="locutora_seo_description">Descrição no Google</label>';
+		        echo '<textarea id="locutora_seo_description" name="locutora_seo_description" class="widefat" rows="4" maxlength="160" placeholder="Resumo curto da página.">' . esc_textarea($description) . '</textarea>';
+		        echo '<p class="description">Sugestão: título com até 70 caracteres e descrição com até 160 caracteres. Depois clique em Atualizar.</p>';
+		        echo '<div class="locutora-seo-hint"><strong>Título principal da página (H1):</strong><br>' . esc_html($h1_hints[$post->post_name] ?? 'Edite o primeiro bloco da página para ajustar o H1.') . '</div>';
+		        echo '</div>';
+		        echo '<div class="locutora-google-preview" aria-label="Prévia aproximada do Google">';
+		        echo '<div class="locutora-google-preview__url">' . esc_html((string) wp_parse_url(get_permalink($post), PHP_URL_HOST)) . ' › ' . esc_html($post->post_name) . '</div>';
+		        echo '<div class="locutora-google-preview__title">' . esc_html($preview_title) . '</div>';
+		        echo '<div class="locutora-google-preview__description">' . esc_html($preview_description) . '</div>';
+		        echo '</div>';
+		        echo '</div>';
+		    }, 'page', 'normal', 'high');
+		});
 
 	add_action('save_post_page', function (int $post_id): void {
 	    if (!isset($_POST['locutora_simple_seo_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_simple_seo_nonce'])), 'locutora_simple_seo')) {
