@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 61;
+const LOCUTORA_SITE_CONFIG_VERSION = 62;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -120,9 +120,44 @@ function locutora_privacy_editor_block(string $content): string {
     ]);
 }
 
+/**
+ * Repara atributos HTML cuja barra de escape foi removida por wp_update_post.
+ * A versão 61 podia salvar "\\u003c" como "u003c", achatando a formatação.
+ */
+function locutora_repair_privacy_content(string $content): string {
+    if (!str_contains($content, 'u003c') || !str_contains($content, 'u003e')) {
+        return $content;
+    }
+
+    $content = strtr($content, [
+        'u003c' => '<',
+        'u003e' => '>',
+        'u0022' => '"',
+        'u0026' => '&',
+        'u0027' => "'",
+        'u005c' => '\\',
+    ]);
+
+    return (string) preg_replace('/(^|>)n+(?=<)/', "$1\n\n", $content);
+}
+
 function locutora_seed_privacy_blocks(): void {
     $privacy_page = get_page_by_path('politica-de-privacidade', OBJECT, 'page');
-    if (!$privacy_page instanceof WP_Post || has_block('locutora/privacy-content', $privacy_page)) {
+    if (!$privacy_page instanceof WP_Post) {
+        return;
+    }
+
+    if (has_block('locutora/privacy-content', $privacy_page)) {
+        $blocks = parse_blocks((string) $privacy_page->post_content);
+        $saved_content = (string) ($blocks[0]['attrs']['content'] ?? '');
+        $repaired_content = locutora_repair_privacy_content($saved_content);
+
+        if ($repaired_content !== $saved_content) {
+            wp_update_post([
+                'ID' => $privacy_page->ID,
+                'post_content' => wp_slash(locutora_privacy_editor_block($repaired_content)),
+            ]);
+        }
         return;
     }
 
@@ -132,7 +167,7 @@ function locutora_seed_privacy_blocks(): void {
     if ($privacy_html !== '') {
         wp_update_post([
             'ID' => $privacy_page->ID,
-            'post_content' => locutora_privacy_editor_block($privacy_html),
+            'post_content' => wp_slash(locutora_privacy_editor_block($privacy_html)),
         ]);
     }
 }
