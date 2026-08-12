@@ -366,6 +366,44 @@ body {
   background: var(--loc-editor-ink);
 }
 
+.editor-styles-wrapper .locutora-editor-repeaters {
+  display: grid;
+  gap: 14px;
+  margin: 16px 0;
+}
+
+.editor-styles-wrapper .locutora-editor-repeater {
+  padding: 16px;
+  background: var(--loc-editor-field);
+  border: 1px solid var(--loc-editor-border);
+  border-radius: 3px;
+}
+
+.editor-styles-wrapper .locutora-editor-repeater__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.editor-styles-wrapper .locutora-editor-repeater__top strong {
+  color: var(--loc-editor-ink);
+}
+
+.editor-styles-wrapper .locutora-editor-repeater__moves {
+  display: flex;
+  gap: 4px;
+}
+
+.editor-styles-wrapper .locutora-editor-repeater .components-base-control {
+  margin-bottom: 12px;
+}
+
+.editor-styles-wrapper .locutora-editor-repeater > .components-button {
+  margin-top: 4px;
+}
+
 .editor-styles-wrapper .locutora-block-preview {
   overflow: clip;
 }
