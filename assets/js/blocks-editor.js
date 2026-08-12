@@ -1,10 +1,10 @@
 (function (blocks, blockEditor, components, element, i18n, serverSideRender) {
   const el = element.createElement;
   const Fragment = element.Fragment;
-  const RawHTML = element.RawHTML;
   const useState = element.useState;
   const BlockControls = blockEditor.BlockControls;
   const InspectorControls = blockEditor.InspectorControls;
+  const InnerBlocks = blockEditor.InnerBlocks;
   const PanelBody = components.PanelBody;
   const BaseControl = components.BaseControl;
   const Button = components.Button;
@@ -325,12 +325,33 @@
             ),
             modeButton('edit', 'edit', __('Voltar para edição', 'locutora'))
           ),
-          props.name === 'locutora/privacy-content'
-            ? el('div', { className: 'privacy-page__content locutora-privacy-editor-preview' },
-                el(RawHTML, null, props.attributes.content || '')
-              )
-            : el(ServerSideRender, { block: props.name, attributes: props.attributes })
+          el(ServerSideRender, { block: props.name, attributes: props.attributes })
         ) : null
+      );
+    };
+  }
+
+  function privacyEditor(title, description) {
+    return function PrivacyEdit() {
+      return el('div', { className: 'locutora-block-editor locutora-block-editor--privacy' },
+        el('header', { className: 'locutora-block-editor__header' },
+          el('div', { className: 'locutora-block-editor__heading' },
+            el('span', { className: 'locutora-block-editor__eyebrow' }, __('Documento da página', 'locutora')),
+            el('h3', { className: 'locutora-block-editor__title' }, title.replace(/^Locutora\s*[—-]\s*/, '')),
+            el('p', { className: 'locutora-block-editor__description' }, description)
+          )
+        ),
+        el('div', { className: 'locutora-privacy-editor__guide' },
+          el('strong', null, __('Como editar', 'locutora')),
+          el('span', null, __('Clique em um trecho para abrir sua barra de ferramentas. Enter cria um novo parágrafo; o botão + adiciona títulos e listas.', 'locutora'))
+        ),
+        el('div', { className: 'privacy-page__content locutora-privacy-editor__blocks' },
+          el(InnerBlocks, {
+            allowedBlocks: ['core/paragraph', 'core/heading', 'core/list', 'core/html'],
+            templateLock: false,
+            renderAppender: InnerBlocks.ButtonBlockAppender,
+          })
+        )
       );
     };
   }
@@ -539,8 +560,12 @@
       icon: definition.icon,
       category: 'design',
       supports: { html: false, reusable: false },
-      edit: editor(definition.fields, definition.title, sectionDescriptions[definition.name] || __('Edite o conteúdo desta seção.', 'locutora')),
-      save: function () { return null; },
+      edit: definition.name === 'locutora/privacy-content'
+        ? privacyEditor(definition.title, sectionDescriptions[definition.name])
+        : editor(definition.fields, definition.title, sectionDescriptions[definition.name] || __('Edite o conteúdo desta seção.', 'locutora')),
+      save: definition.name === 'locutora/privacy-content'
+        ? function () { return el(InnerBlocks.Content); }
+        : function () { return null; },
     });
   });
 })(window.wp.blocks, window.wp.blockEditor, window.wp.components, window.wp.element, window.wp.i18n, window.wp.serverSideRender);
