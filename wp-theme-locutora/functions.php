@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 62;
+const LOCUTORA_SITE_CONFIG_VERSION = 63;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -111,13 +111,10 @@ function locutora_privacy_default_content(): string {
 }
 
 function locutora_privacy_editor_block(string $content): string {
-    return serialize_block([
-        'blockName'    => 'locutora/privacy-content',
-        'attrs'        => ['content' => $content],
-        'innerBlocks'  => [],
-        'innerHTML'    => '',
-        'innerContent' => [],
-    ]);
+    $inner_blocks = locutora_html_to_core_blocks($content);
+    return "<!-- wp:locutora/privacy-content -->\n"
+        . $inner_blocks
+        . "\n<!-- /wp:locutora/privacy-content -->";
 }
 
 /**
@@ -125,20 +122,19 @@ function locutora_privacy_editor_block(string $content): string {
  * A versão 61 podia salvar "\\u003c" como "u003c", achatando a formatação.
  */
 function locutora_repair_privacy_content(string $content): string {
-    if (!str_contains($content, 'u003c') || !str_contains($content, 'u003e')) {
-        return $content;
+    if (str_contains($content, 'u003c') && str_contains($content, 'u003e')) {
+        $content = strtr($content, [
+            'u003c' => '<',
+            'u003e' => '>',
+            'u0022' => '"',
+            'u0026' => '&',
+            'u0027' => "'",
+            'u005c' => '\\',
+        ]);
     }
 
-    $content = strtr($content, [
-        'u003c' => '<',
-        'u003e' => '>',
-        'u0022' => '"',
-        'u0026' => '&',
-        'u0027' => "'",
-        'u005c' => '\\',
-    ]);
-
-    return (string) preg_replace('/(^|>)n+(?=<)/', "$1\n\n", $content);
+    $content = (string) preg_replace('/^n+(?=<)/', '', $content);
+    return (string) preg_replace('/>n{2,}(?=<)/', ">\n\n", $content);
 }
 
 function locutora_seed_privacy_blocks(): void {
@@ -149,10 +145,13 @@ function locutora_seed_privacy_blocks(): void {
 
     if (has_block('locutora/privacy-content', $privacy_page)) {
         $blocks = parse_blocks((string) $privacy_page->post_content);
+        if (!empty($blocks[0]['innerBlocks'])) {
+            return;
+        }
         $saved_content = (string) ($blocks[0]['attrs']['content'] ?? '');
         $repaired_content = locutora_repair_privacy_content($saved_content);
 
-        if ($repaired_content !== $saved_content) {
+        if ($repaired_content !== '') {
             wp_update_post([
                 'ID' => $privacy_page->ID,
                 'post_content' => wp_slash(locutora_privacy_editor_block($repaired_content)),
@@ -971,9 +970,8 @@ function locutora_render_contact_form_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
-function locutora_render_privacy_content_block(array $attributes): string {
-    $content = (string) ($attributes['content'] ?? locutora_privacy_default_content());
-    return locutora_rich_text($content);
+function locutora_render_privacy_content_block(array $attributes, string $content): string {
+    return $content !== '' ? $content : locutora_rich_text(locutora_privacy_default_content());
 }
 
 add_action('init', function (): void {
@@ -1105,9 +1103,7 @@ add_action('init', function (): void {
         ],
         'locutora/privacy-content' => [
             'render_callback' => 'locutora_render_privacy_content_block',
-            'attributes' => [
-                'content' => ['type' => 'string', 'default' => locutora_privacy_default_content()],
-            ],
+            'attributes' => [],
         ],
     ];
 

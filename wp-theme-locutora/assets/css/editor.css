@@ -397,12 +397,39 @@ body {
   background: var(--loc-editor-paper);
 }
 
-.editor-styles-wrapper .locutora-privacy-editor-preview {
-  width: min(100%, 1200px);
+.editor-styles-wrapper .locutora-privacy-editor__guide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 26px 0 8px;
+  padding: 14px 16px;
+  color: var(--loc-editor-muted);
+  background: var(--loc-editor-accent-soft);
+  border-left: 3px solid var(--loc-editor-accent);
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__guide strong {
+  flex: 0 0 auto;
+  color: var(--loc-editor-accent-strong);
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__blocks {
+  width: 100%;
   max-width: none;
-  margin: 0 auto;
-  padding: clamp(24px, 4vw, 52px);
+  margin: 0;
+  padding: clamp(20px, 3vw, 36px);
+  background: var(--loc-editor-paper);
+  border: 1px solid var(--loc-editor-border);
   box-sizing: border-box;
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__blocks > .block-editor-inner-blocks > .block-editor-block-list__layout {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__blocks .block-list-appender {
+  margin-top: 20px;
 }
 
 /* No editor, conteúdo não depende das animações do front-end. */
@@ -476,8 +503,10 @@ body {
 
   .editor-styles-wrapper .locutora-block-editor__header,
   .editor-styles-wrapper .locutora-block-preview__bar,
-  .editor-styles-wrapper .locutora-block-editor__status {
+  .editor-styles-wrapper .locutora-block-editor__status,
+  .editor-styles-wrapper .locutora-privacy-editor__guide {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   .editor-styles-wrapper .locutora-block-editor__modes {
