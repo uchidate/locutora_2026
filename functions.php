@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 63;
+const LOCUTORA_SITE_CONFIG_VERSION = 64;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -74,18 +74,31 @@ function locutora_html_to_core_blocks(string $html): string {
 
         if ($tag === 'ul' || $tag === 'ol') {
             $attributes = [];
+            $list_tag_attributes = ' class="wp-block-list"';
             if ($tag === 'ol') {
                 $attributes['ordered'] = true;
                 $start = (int) $node->getAttribute('start');
                 if ($start > 1) {
                     $attributes['start'] = $start;
+                    $list_tag_attributes .= ' start="' . $start . '"';
                 }
             }
 
-            $node->setAttribute('class', trim($node->getAttribute('class') . ' wp-block-list'));
+            $list_items = [];
+            foreach ($node->childNodes as $list_item) {
+                if (!$list_item instanceof DOMElement || strtolower($list_item->tagName) !== 'li') {
+                    continue;
+                }
+                $list_items[] = "<!-- wp:list-item -->\n"
+                    . $document->saveHTML($list_item)
+                    . "\n<!-- /wp:list-item -->";
+            }
+
             $serialized_attributes = $attributes ? ' ' . wp_json_encode($attributes) : '';
             $blocks[] = '<!-- wp:list' . $serialized_attributes . " -->\n"
-                . $document->saveHTML($node)
+                . '<' . $tag . $list_tag_attributes . ">\n"
+                . implode("\n", $list_items)
+                . "\n</" . $tag . '>'
                 . "\n<!-- /wp:list -->";
             continue;
         }
@@ -134,7 +147,7 @@ function locutora_repair_privacy_content(string $content): string {
     }
 
     $content = (string) preg_replace('/^n+(?=<)/', '', $content);
-    return (string) preg_replace('/>n{2,}(?=<)/', ">\n\n", $content);
+    return (string) preg_replace('/>n+(?=<)/', ">\n\n", $content);
 }
 
 function locutora_seed_privacy_blocks(): void {
@@ -146,6 +159,25 @@ function locutora_seed_privacy_blocks(): void {
     if (has_block('locutora/privacy-content', $privacy_page)) {
         $blocks = parse_blocks((string) $privacy_page->post_content);
         if (!empty($blocks[0]['innerBlocks'])) {
+            $must_normalize = false;
+            foreach ($blocks[0]['innerBlocks'] as $inner_block) {
+                if (($inner_block['blockName'] ?? '') === 'core/list' && empty($inner_block['innerBlocks'])) {
+                    $must_normalize = true;
+                    break;
+                }
+            }
+
+            if ($must_normalize) {
+                $rendered_content = '';
+                foreach ($blocks[0]['innerBlocks'] as $inner_block) {
+                    $rendered_content .= render_block($inner_block);
+                }
+                $rendered_content = locutora_repair_privacy_content($rendered_content);
+                wp_update_post([
+                    'ID' => $privacy_page->ID,
+                    'post_content' => wp_slash(locutora_privacy_editor_block($rendered_content)),
+                ]);
+            }
             return;
         }
         $saved_content = (string) ($blocks[0]['attrs']['content'] ?? '');
