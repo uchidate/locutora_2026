@@ -7,7 +7,6 @@
   const PanelBody = components.PanelBody;
   const BaseControl = components.BaseControl;
   const Button = components.Button;
-  const Notice = components.Notice;
   const ToolbarButton = components.ToolbarButton;
   const ToolbarGroup = components.ToolbarGroup;
   const TextControl = components.TextControl;
@@ -24,6 +23,31 @@
   const classicEditor = window.wp.oldEditor || window.wp.editor;
   const editorSettings = window.locutoraEditorSettings || {};
   let wysiwygCounter = 0;
+
+  function plainText(value) {
+    const container = window.document.createElement('div');
+    container.innerHTML = value || '';
+    return (container.textContent || container.innerText || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function fieldHelp(field, value) {
+    const count = plainText(Array.isArray(value) ? '' : value).length;
+    const guidance = field.help || (field.recommended
+      ? __('Recomendação: até ', 'locutora') + field.recommended + __(' caracteres.', 'locutora')
+      : '');
+
+    if (field.media || field.gallery || field.options || field.url) {
+      return guidance || undefined;
+    }
+
+    return el('span', { className: 'locutora-editor-field__help' },
+      guidance ? el('span', null, guidance) : null,
+      el('span', {
+        className: 'locutora-editor-field__count' + (field.recommended && count > field.recommended ? ' is-over' : ''),
+        'aria-label': count + __(' caracteres', 'locutora'),
+      }, count + (field.recommended ? ' / ' + field.recommended : '') + __(' caracteres', 'locutora'))
+    );
+  }
 
   function tinymceSettings(onChange) {
     return {
@@ -98,7 +122,7 @@
 
     return el(
       BaseControl,
-      { label: field.label, className: 'locutora-editor-field locutora-editor-field--wysiwyg', help: field.help || undefined },
+      { label: field.label, className: 'locutora-editor-field locutora-editor-field--wysiwyg', help: fieldHelp(field, initialValue) },
       el('textarea', {
         id: editorId,
         ref: textareaRef,
@@ -174,7 +198,7 @@
     if ((field.richtext || field.wysiwyg) && !compact) {
       return el(
         BaseControl,
-        { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--richtext' },
+        { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--richtext', help: fieldHelp(field, value) },
         el(RichText, {
           tagName: 'div',
           value: value,
@@ -201,19 +225,35 @@
       label: field.label,
       value: value,
       type: field.url ? 'url' : 'text',
-      help: field.help || undefined,
+      className: 'locutora-editor-field' + (field.wide ? ' locutora-editor-field--wide' : ''),
+      help: fieldHelp(field, value),
       rows: field.rows || 4,
       onChange: update,
     });
   }
 
-  function editor(fields, title, alwaysEdit) {
+  function editor(fields, title, description) {
     return function Edit(props) {
       const state = useState('edit');
       const mode = state[0];
       const setMode = state[1];
       const controls = fields.map(function (field) { return fieldControl(field, props, false); });
       const sidebarControls = fields.filter(function (field) { return !field.richtext && !field.wysiwyg; }).map(function (field) { return fieldControl(field, props, true); });
+      const editableTitle = title.replace(/^Locutora\s*[—-]\s*/, '');
+      const filledFields = fields.filter(function (field) {
+        const value = props.attributes[field.name];
+        return Array.isArray(value) ? value.length > 0 : plainText(value || '').length > 0;
+      }).length;
+
+      function modeButton(nextMode, icon, label) {
+        return el(Button, {
+          icon: icon,
+          variant: mode === nextMode ? 'primary' : 'tertiary',
+          className: 'locutora-block-editor__mode-button',
+          'aria-pressed': mode === nextMode,
+          onClick: function () { setMode(nextMode); },
+        }, label);
+      }
 
       return el(
         Fragment,
@@ -225,14 +265,36 @@
           )
         ),
         el(InspectorControls, null, el(PanelBody, { title: __('Conteúdo da seção', 'locutora'), initialOpen: true }, sidebarControls)),
-        (alwaysEdit || props.isSelected) && mode === 'edit' ? el(
+        mode === 'edit' ? el(
           'div',
           { className: 'locutora-block-editor' },
-          el('h3', { className: 'locutora-block-editor__title' }, __('Editar: ', 'locutora') + title),
-          el(Notice, { status: 'info', isDismissible: false }, __('Altere os campos abaixo e use Atualizar para publicar.', 'locutora')),
+          el('header', { className: 'locutora-block-editor__header' },
+            el('div', { className: 'locutora-block-editor__heading' },
+              el('span', { className: 'locutora-block-editor__eyebrow' }, __('Seção da página', 'locutora')),
+              el('h3', { className: 'locutora-block-editor__title' }, editableTitle),
+              el('p', { className: 'locutora-block-editor__description' }, description)
+            ),
+            el('div', { className: 'locutora-block-editor__modes', 'aria-label': __('Modo de visualização', 'locutora') },
+              modeButton('edit', 'edit', __('Editar textos', 'locutora')),
+              modeButton('preview', 'visibility', __('Ver no site', 'locutora'))
+            )
+          ),
+          el('div', { className: 'locutora-block-editor__status' },
+            el('span', null, filledFields + ' ' + __('campos preenchidos', 'locutora')),
+            el('span', null, __('As alterações só vão ao ar depois de clicar em Atualizar.', 'locutora'))
+          ),
           el('div', { className: 'locutora-block-editor__fields' }, controls)
         ) : null,
-        el(ServerSideRender, { block: props.name, attributes: props.attributes })
+        mode === 'preview' ? el('div', { className: 'locutora-block-preview' },
+          el('div', { className: 'locutora-block-preview__bar' },
+            el('div', null,
+              el('strong', null, __('Prévia da seção', 'locutora')),
+              el('span', null, __('Confira o texto no contexto visual do site.', 'locutora'))
+            ),
+            modeButton('edit', 'edit', __('Voltar para edição', 'locutora'))
+          ),
+          el(ServerSideRender, { block: props.name, attributes: props.attributes })
+        ) : null
       );
     };
   }
@@ -392,14 +454,40 @@
     },
   ];
 
+  const sectionDescriptions = {
+    'locutora/hero': 'É a primeira mensagem que as pessoas leem ao entrar no site.',
+    'locutora/intro': 'Apresenta a profissional, sua experiência e o próximo passo para o visitante.',
+    'locutora/services': 'Resume os principais tipos de gravação oferecidos.',
+    'locutora/contact-cta': 'Convida o visitante a iniciar uma conversa.',
+    'locutora/internal-hero': 'Identifica esta página no topo do site.',
+    'locutora/about-story': 'Conta a história do estúdio e apresenta missão, visão e valores.',
+    'locutora/about-bio': 'Organiza a trajetória profissional em parágrafos fáceis de revisar.',
+    'locutora/brands': 'Apresenta marcas atendidas e reforça a experiência profissional.',
+    'locutora/audio-showcase': 'Introduz os players com amostras de voz e vídeo.',
+    'locutora/contact-form': 'Define os nomes dos campos que o visitante preencherá.',
+  };
+
   definitions.forEach(function (definition) {
+    definition.fields = definition.fields.map(function (field) {
+      if (field.recommended || field.media || field.gallery || field.options || field.url || field.wysiwyg) {
+        return field;
+      }
+      if (/title|heading/i.test(field.name)) {
+        return Object.assign({}, field, { recommended: 70, wide: true });
+      }
+      if (/label|eyebrow|subtitle|item\d/i.test(field.name)) {
+        return Object.assign({}, field, { recommended: 40 });
+      }
+      return field;
+    });
+
     blocks.registerBlockType(definition.name, {
       apiVersion: 2,
       title: definition.title,
       icon: definition.icon,
       category: 'design',
       supports: { html: false, reusable: false },
-      edit: editor(definition.fields, definition.title, definition.alwaysEdit === true),
+      edit: editor(definition.fields, definition.title, sectionDescriptions[definition.name] || __('Edite o conteúdo desta seção.', 'locutora')),
       save: function () { return null; },
     });
   });
