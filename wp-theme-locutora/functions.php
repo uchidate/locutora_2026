@@ -2227,6 +2227,7 @@ add_action('acf/init', function (): void {
 	            'Telefone: ' . ((string) ($data['telefone'] ?? '')),
 	            'Assunto: ' . ((string) ($data['assunto'] ?? '')),
 	            'Destinatário: ' . ((string) ($data['recipient'] ?? '')),
+	            'Segurança: ' . ((string) ($data['nonce'] ?? 'não informado')),
 	            $error ? 'Erro: ' . $error : '',
 	            '',
 	            ((string) ($data['mensagem'] ?? '')),
@@ -2240,19 +2241,19 @@ add_action('acf/init', function (): void {
 	}
 
 	function locutora_handle_contact(): void {
-    if (!isset($_POST['locutora_contact_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_contact_nonce'])), 'locutora_contact')) {
-        wp_die('Solicitação inválida.', 403);
-    }
-
-    $nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ''));
-    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
-    $telefone = sanitize_text_field(wp_unslash($_POST['telefone'] ?? ''));
-    $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
-    $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
+	    $nonce = sanitize_text_field(wp_unslash($_POST['locutora_contact_nonce'] ?? ''));
+	    $has_valid_nonce = $nonce !== '' && wp_verify_nonce($nonce, 'locutora_contact');
+	    $nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ''));
+	    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+	    $telefone = sanitize_text_field(wp_unslash($_POST['telefone'] ?? ''));
+	    $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
+	    $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
 	    $recipient = sanitize_email((string) locutora_setting('form_recipient_email', get_option('admin_email')));
 	    $ok = false;
 	    $error = '';
-	    if (!$nome || !is_email($email) || !$assunto || !is_email($recipient)) {
+	    if (!$has_valid_nonce) {
+	        $error = 'Token de segurança ausente ou expirado.';
+	    } elseif (!$nome || !is_email($email) || !$assunto || !is_email($recipient)) {
 	        $error = 'Dados obrigatórios inválidos.';
 	    } else {
 	        $ok = wp_mail(
@@ -2273,10 +2274,17 @@ add_action('acf/init', function (): void {
 	        'assunto' => $assunto,
 	        'mensagem' => $mensagem,
 	        'recipient' => $recipient,
+	        'nonce' => $has_valid_nonce ? 'válido' : 'ausente ou expirado',
 	    ], (bool) $ok, $error);
 
-    wp_safe_redirect(add_query_arg('enviado', $ok ? '1' : '0', home_url('/contato/')));
-    exit;
-}
-add_action('admin_post_nopriv_locutora_contact', 'locutora_handle_contact');
-add_action('admin_post_locutora_contact', 'locutora_handle_contact');
+	    wp_safe_redirect(add_query_arg('enviado', $ok ? '1' : '0', home_url('/contato/')));
+	    exit;
+	}
+	add_action('admin_post_nopriv_locutora_contact', 'locutora_handle_contact');
+	add_action('admin_post_locutora_contact', 'locutora_handle_contact');
+
+	add_action('template_redirect', function (): void {
+	    if (is_page('contato')) {
+	        nocache_headers();
+	    }
+	});
