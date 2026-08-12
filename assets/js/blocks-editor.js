@@ -20,6 +20,10 @@
   const useEffect = element.useEffect;
   const useRef = element.useRef;
   const __ = i18n.__;
+  const registerPlugin = window.wp.plugins && window.wp.plugins.registerPlugin;
+  const PluginDocumentSettingPanel = window.wp.editPost && window.wp.editPost.PluginDocumentSettingPanel;
+  const useSelect = window.wp.data && window.wp.data.useSelect;
+  const useDispatch = window.wp.data && window.wp.data.useDispatch;
 
   const classicEditor = window.wp.oldEditor || window.wp.editor;
   const editorSettings = window.locutoraEditorSettings || {};
@@ -731,4 +735,54 @@
         : function () { return null; },
     });
   });
+
+  function SeoSidebarPanel() {
+    const meta = useSelect(function (select) {
+      const edited = select('core/editor').getEditedPostAttribute('meta') || {};
+      return {
+        title: edited.rank_math_title || '',
+        description: edited.rank_math_description || '',
+        slug: select('core/editor').getEditedPostAttribute('slug') || '',
+        link: select('core/editor').getPermalink() || '',
+      };
+    }, []);
+    const editPost = useDispatch('core/editor').editPost;
+    const host = meta.link ? meta.link.replace(/^https?:\/\//, '').replace(/\/.*$/, '') : 'locutora.com';
+    const previewTitle = meta.title || __('Título da página - Locutora', 'locutora');
+    const previewDescription = meta.description || __('Descrição curta da página para aparecer no Google.', 'locutora');
+
+    return el(PluginDocumentSettingPanel, {
+      name: 'locutora-seo-sidebar',
+      title: __('Google / SEO simples', 'locutora'),
+      className: 'locutora-seo-sidebar',
+    },
+      el(TextControl, {
+        label: __('Título no Google', 'locutora'),
+        value: meta.title,
+        help: meta.title.length + ' / 70 ' + __('caracteres', 'locutora'),
+        onChange: function (value) {
+          editPost({ meta: { rank_math_title: value, rank_math_description: meta.description } });
+        },
+      }),
+      el(TextareaControl, {
+        label: __('Descrição no Google', 'locutora'),
+        value: meta.description,
+        rows: 4,
+        help: meta.description.length + ' / 160 ' + __('caracteres', 'locutora'),
+        onChange: function (value) {
+          editPost({ meta: { rank_math_title: meta.title, rank_math_description: value } });
+        },
+      }),
+      el('div', { className: 'locutora-google-preview' },
+        el('div', { className: 'locutora-google-preview__url' }, host + (meta.slug ? ' › ' + meta.slug : '')),
+        el('div', { className: 'locutora-google-preview__title' }, previewTitle),
+        el('div', { className: 'locutora-google-preview__description' }, previewDescription)
+      ),
+      el('p', { className: 'description' }, __('Salve/Atualize a página para publicar estes ajustes.', 'locutora'))
+    );
+  }
+
+  if (registerPlugin && PluginDocumentSettingPanel && useSelect && useDispatch) {
+    registerPlugin('locutora-seo-sidebar', { render: SeoSidebarPanel });
+  }
 })(window.wp.blocks, window.wp.blockEditor, window.wp.components, window.wp.element, window.wp.i18n, window.wp.serverSideRender);
