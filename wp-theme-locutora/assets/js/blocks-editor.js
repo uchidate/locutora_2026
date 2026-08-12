@@ -1,6 +1,7 @@
 (function (blocks, blockEditor, components, element, i18n, serverSideRender) {
   const el = element.createElement;
   const Fragment = element.Fragment;
+  const RawHTML = element.RawHTML;
   const useState = element.useState;
   const BlockControls = blockEditor.BlockControls;
   const InspectorControls = blockEditor.InspectorControls;
@@ -324,7 +325,11 @@
             ),
             modeButton('edit', 'edit', __('Voltar para edição', 'locutora'))
           ),
-          el(ServerSideRender, { block: props.name, attributes: props.attributes })
+          props.name === 'locutora/privacy-content'
+            ? el('div', { className: 'privacy-page__content locutora-privacy-editor-preview' },
+                el(RawHTML, null, props.attributes.content || '')
+              )
+            : el(ServerSideRender, { block: props.name, attributes: props.attributes })
         ) : null
       );
     };

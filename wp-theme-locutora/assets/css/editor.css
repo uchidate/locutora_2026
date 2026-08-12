@@ -397,6 +397,14 @@ body {
   background: var(--loc-editor-paper);
 }
 
+.editor-styles-wrapper .locutora-privacy-editor-preview {
+  width: min(100%, 1200px);
+  max-width: none;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 52px);
+  box-sizing: border-box;
+}
+
 /* No editor, conteúdo não depende das animações do front-end. */
 .editor-styles-wrapper .reveal,
 .editor-styles-wrapper .hero__eyebrow,
