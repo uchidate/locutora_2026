@@ -1349,13 +1349,63 @@ add_action('init', function () {
             'edit_item'     => 'Editar serviço',
             'not_found'     => 'Nenhum serviço cadastrado',
         ],
-        'public'       => false,
-        'show_ui'      => true,
-        'show_in_rest' => true,
-        'menu_icon'    => 'dashicons-megaphone',
-        'supports'     => ['title', 'editor', 'page-attributes'],
-    ]);
-});
+	        'public'       => false,
+	        'show_ui'      => true,
+	        'show_in_menu' => false,
+	        'show_in_rest' => true,
+	        'menu_icon'    => 'dashicons-megaphone',
+	        'supports'     => ['title', 'editor', 'page-attributes'],
+	    ]);
+	});
+
+	function locutora_redirect_to_page_editor(string $slug): void {
+	    $page = get_page_by_path($slug, OBJECT, 'page');
+	    if ($page instanceof WP_Post) {
+	        wp_safe_redirect(admin_url('post.php?post=' . $page->ID . '&action=edit'));
+	        exit;
+	    }
+
+	    echo '<div class="wrap"><h1>Editar site</h1><p>Esta página ainda não foi encontrada.</p></div>';
+	}
+
+	function locutora_admin_page_shortcut(string $slug): callable {
+	    return static function () use ($slug): void {
+	        locutora_redirect_to_page_editor($slug);
+	    };
+	}
+
+	add_action('admin_menu', function (): void {
+	    remove_menu_page('edit-comments.php');
+
+	    add_menu_page(
+	        'Editar site',
+	        'Editar site',
+	        'edit_pages',
+	        'locutora-edit-site',
+	        locutora_admin_page_shortcut('home'),
+	        'dashicons-edit-page',
+	        20
+	    );
+
+	    $pages = [
+	        ['Início', 'home'],
+	        ['Sobre nós', 'sobre-nos'],
+	        ['Áudios', 'servicos'],
+	        ['Contato', 'contato'],
+	        ['Política de Privacidade', 'politica-de-privacidade'],
+	    ];
+
+	    foreach ($pages as [$label, $slug]) {
+	        add_submenu_page(
+	            'locutora-edit-site',
+	            $label,
+	            $label,
+	            'edit_pages',
+	            'locutora-edit-' . $slug,
+	            locutora_admin_page_shortcut($slug)
+	        );
+	    }
+	}, 20);
 
 /* ─── Conteúdo principal no Personalizador nativo ─── */
 add_action('customize_register', function (WP_Customize_Manager $customizer) {
@@ -1492,7 +1542,7 @@ add_action('init', function (): void {
 	        ],
 	        'public' => false,
 	        'show_ui' => true,
-	        'show_in_menu' => true,
+		        'show_in_menu' => false,
 	        'menu_icon' => 'dashicons-phone',
 	        'supports' => ['title'],
 	        'capability_type' => 'page',
