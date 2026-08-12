@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 68;
+const LOCUTORA_SITE_CONFIG_VERSION = 69;
 
 const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
 const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
@@ -24,6 +24,20 @@ add_action('after_setup_theme', function () {
         'primary' => 'Menu principal',
     ]);
 });
+
+add_action('init', function (): void {
+    register_taxonomy('attachment_category', 'attachment', [
+        'labels' => [
+            'name' => 'Categorias de mídia',
+            'singular_name' => 'Categoria de mídia',
+        ],
+        'public' => false,
+        'show_ui' => true,
+        'show_admin_column' => true,
+        'show_in_rest' => true,
+        'hierarchical' => true,
+    ]);
+}, 8);
 
 function locutora_dom_inner_html(DOMNode $node): string {
     $html = '';
@@ -317,6 +331,31 @@ function locutora_media_import_manifest(): array {
     return $files;
 }
 
+function locutora_media_category_for_source(string $relative_path): string {
+    if (str_contains($relative_path, '/brands/')) {
+        return 'Marcas';
+    }
+    if (str_contains($relative_path, '/video/')) {
+        return 'Vídeos';
+    }
+    if (str_contains($relative_path, 'servico-')) {
+        return 'Ícones';
+    }
+    if (str_contains($relative_path, '/internal/') && str_contains($relative_path, 'hero')) {
+        return 'Fundos';
+    }
+    return 'Fotos';
+}
+
+function locutora_ensure_media_categories(): void {
+    $categories = ['Fotos', 'Marcas', 'Fundos', 'Vídeos', 'Ícones'];
+    foreach ($categories as $category) {
+        if (!term_exists($category, 'attachment_category')) {
+            wp_insert_term($category, 'attachment_category');
+        }
+    }
+}
+
 function locutora_import_theme_media_to_library(): void {
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -374,6 +413,7 @@ function locutora_import_theme_media_to_library(): void {
         }
         update_post_meta((int) $attachment_id, '_locutora_theme_media_source', $relative_path);
         update_post_meta((int) $attachment_id, '_wp_attachment_image_alt', $title);
+        wp_set_object_terms((int) $attachment_id, locutora_media_category_for_source($relative_path), 'attachment_category', false);
     }
 }
 
@@ -410,6 +450,10 @@ function locutora_consolidate_theme_media_duplicates(): void {
             'orderby' => 'ID',
             'order' => 'ASC',
         ]);
+
+        if (!empty($attachments[0])) {
+            wp_set_object_terms((int) $attachments[0], locutora_media_category_for_source($relative_path), 'attachment_category', false);
+        }
 
         if (count($attachments) <= 1) {
             continue;
@@ -547,6 +591,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_internal_blocks();
     locutora_migrate_editable_page_blocks();
     locutora_migrate_contact_settings();
+    locutora_ensure_media_categories();
     locutora_import_theme_media_to_library();
     locutora_consolidate_theme_media_duplicates();
     locutora_apply_rank_math_metadata();
@@ -1570,6 +1615,30 @@ add_action('init', function () {
 	    return 'Atualizada em ' . get_the_modified_date('d/m/Y H:i', $page);
 	}
 
+	function locutora_export_page_url(int $post_id): string {
+	    return wp_nonce_url(admin_url('admin-post.php?action=locutora_export_page_content&post_id=' . $post_id), 'locutora_export_page_content_' . $post_id);
+	}
+
+	add_action('admin_post_locutora_export_page_content', function (): void {
+	    $post_id = (int) ($_GET['post_id'] ?? 0);
+	    if ($post_id <= 0 || !current_user_can('edit_page', $post_id) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'] ?? '')), 'locutora_export_page_content_' . $post_id)) {
+	        wp_die('Exportação não autorizada.', 403);
+	    }
+	    $post = get_post($post_id);
+	    if (!$post instanceof WP_Post || $post->post_type !== 'page') {
+	        wp_die('Página não encontrada.', 404);
+	    }
+
+	    $filename = sanitize_title($post->post_title) . '-conteudo-' . gmdate('Y-m-d-His') . '.txt';
+	    header('Content-Type: text/plain; charset=utf-8');
+	    header('Content-Disposition: attachment; filename="' . $filename . '"');
+	    echo $post->post_title . "\n";
+	    echo get_permalink($post) . "\n";
+	    echo 'Exportado em ' . current_time('d/m/Y H:i') . "\n\n";
+	    echo wp_strip_all_tags(do_blocks((string) $post->post_content));
+	    exit;
+	});
+
 	add_action('init', function (): void {
 	    $caps = [
 	        'read' => true,
@@ -1624,6 +1693,20 @@ add_action('init', function () {
 	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('admin.php?page=locutora-manual')) . '"><span class="dashicons dashicons-book-alt"></span><div><strong>Manual rápido</strong><small>Como editar sem quebrar o site</small></div></a>';
 	        echo '</div>';
 	    });
+
+	    wp_add_dashboard_widget('locutora_admin_history', 'Últimas alterações', function (): void {
+	        echo '<ul class="locutora-history-list">';
+	        foreach (locutora_admin_quick_links() as [$label, $slug]) {
+	            $page = get_page_by_path($slug, OBJECT, 'page');
+	            if (!$page instanceof WP_Post) {
+	                continue;
+	            }
+	            $user = get_userdata((int) $page->post_author);
+	            $author = $user instanceof WP_User ? $user->display_name : 'usuário do site';
+	            echo '<li><strong>' . esc_html($label) . '</strong><span>' . esc_html(get_the_modified_date('d/m/Y H:i', $page)) . ' por ' . esc_html($author ?: 'usuário do site') . '</span></li>';
+	        }
+	        echo '</ul>';
+	    });
 	});
 
 	add_action('admin_head', function (): void {
@@ -1638,6 +1721,9 @@ add_action('init', function () {
 	        .locutora-manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 1100px; }
 	        .locutora-manual-card { padding: 18px; background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #b86f00; }
 	        .locutora-manual-card h2 { margin-top: 0; }
+	        .locutora-history-list { margin: 0; }
+	        .locutora-history-list li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f0f0f1; }
+	        .locutora-history-list span { color: #646970; }
 	    </style>';
 	});
 
@@ -1649,7 +1735,10 @@ add_action('init', function () {
 	    if (!in_array($post->post_name, $editable_slugs, true)) {
 	        return;
 	    }
-	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.</p></div>';
+	    $extra = in_array($post->post_name, ['home', 'politica-de-privacidade'], true)
+	        ? ' Para mudanças grandes, exporte uma cópia antes de editar.'
+	        : '';
+	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.' . esc_html($extra) . ' <a class="button button-small" href="' . esc_url(locutora_export_page_url((int) $post->ID)) . '">Exportar conteúdo</a></p></div>';
 	});
 
 	function locutora_render_admin_manual_page(): void {
