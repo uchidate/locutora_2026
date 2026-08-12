@@ -295,7 +295,7 @@ function locutora_migrate_legacy_contact_page_form(): void {
     }
 
     $content = (string) $page->post_content;
-    if (!str_contains($content, 'contact_handler.php') && !str_contains($content, 'uk-form-stacked')) {
+    if (strpos($content, 'contact_handler.php') === false && strpos($content, 'uk-form-stacked') === false) {
         return;
     }
 
@@ -2306,3 +2306,14 @@ add_action('acf/init', function (): void {
 	        nocache_headers();
 	    }
 	});
+
+	add_filter('the_content', function (string $content): string {
+	    if (!is_page('contato')) {
+	        return $content;
+	    }
+	    if (strpos($content, 'contact_handler.php') === false && strpos($content, 'uk-form-stacked') === false) {
+	        return $content;
+	    }
+
+	    return do_blocks(locutora_default_page_blocks('contato'));
+	}, 5);
