@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 66;
+const LOCUTORA_SITE_CONFIG_VERSION = 67;
 
 const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
 const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
@@ -289,6 +289,94 @@ function locutora_migrate_contact_settings(): void {
     }
 }
 
+function locutora_media_import_manifest(): array {
+    $brand_names = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
+    $files = [
+        'assets/images/intro.png' => 'Foto da apresentação',
+        'assets/images/internal/adriana-rosa-retrato.jpg' => 'Retrato de Adriana Rosa',
+        'assets/images/internal/sobre-intro.png' => 'Imagem do estúdio',
+        'assets/images/internal/sobre-hero.png' => 'Imagem de fundo - Sobre nós',
+        'assets/images/internal/servicos-hero.png' => 'Imagem de fundo - Áudios',
+        'assets/images/internal/contato-hero.png' => 'Imagem de fundo - Contato',
+        'assets/images/footer-logo-locutora.png' => 'Logo do rodapé',
+        'assets/images/logo-adriana-rosa.png' => 'Logo Adriana Rosa',
+        'assets/images/servico-comerciais.webp' => 'Ícone - Comerciais',
+        'assets/images/servico-tv.webp' => 'Ícone - Rádio e TV',
+        'assets/images/servico-internet.webp' => 'Ícone - Conteúdo para internet',
+        'assets/images/servico-mais.webp' => 'Ícone - E muito mais',
+        'assets/video/contato.mp4' => 'Vídeo de fundo - Contato',
+        'assets/video/vitrine-1.mp4' => 'Vídeo de vitrine 1',
+        'assets/video/vitrine-2.mp4' => 'Vídeo de vitrine 2',
+        'assets/video/vitrine-3.mp4' => 'Vídeo de vitrine 3',
+    ];
+
+    foreach ($brand_names as $brand_name) {
+        $files['assets/images/brands/' . $brand_name . '.png'] = 'Marca - ' . $brand_name;
+    }
+
+    return $files;
+}
+
+function locutora_import_theme_media_to_library(): void {
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+
+    $theme_dir = get_template_directory();
+    $upload_dir = wp_upload_dir();
+
+    foreach (locutora_media_import_manifest() as $relative_path => $title) {
+        $source_path = $theme_dir . '/' . $relative_path;
+        if (!file_exists($source_path)) {
+            continue;
+        }
+
+        $existing = get_posts([
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+            'meta_key' => '_locutora_theme_media_source',
+            'meta_value' => $relative_path,
+        ]);
+        if (!empty($existing)) {
+            continue;
+        }
+
+        $filename = wp_basename($source_path);
+        $destination = trailingslashit($upload_dir['path']) . $filename;
+        $copy_index = 2;
+        while (file_exists($destination)) {
+            $info = pathinfo($filename);
+            $destination = trailingslashit($upload_dir['path']) . $info['filename'] . '-' . $copy_index . '.' . $info['extension'];
+            $copy_index++;
+        }
+
+        if (!copy($source_path, $destination)) {
+            continue;
+        }
+
+        $filetype = wp_check_filetype($destination);
+        $attachment_id = wp_insert_attachment([
+            'post_mime_type' => $filetype['type'] ?: 'application/octet-stream',
+            'post_title' => $title,
+            'post_content' => '',
+            'post_status' => 'inherit',
+        ], $destination);
+
+        if (is_wp_error($attachment_id) || $attachment_id <= 0) {
+            continue;
+        }
+
+        $metadata = wp_generate_attachment_metadata((int) $attachment_id, $destination);
+        if (!is_wp_error($metadata) && !empty($metadata)) {
+            wp_update_attachment_metadata((int) $attachment_id, $metadata);
+        }
+        update_post_meta((int) $attachment_id, '_locutora_theme_media_source', $relative_path);
+        update_post_meta((int) $attachment_id, '_wp_attachment_image_alt', $title);
+    }
+}
+
 function locutora_migrate_editable_blocks(array &$blocks): bool {
     $changed = false;
 
@@ -415,6 +503,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_internal_blocks();
     locutora_migrate_editable_page_blocks();
     locutora_migrate_contact_settings();
+    locutora_import_theme_media_to_library();
     locutora_apply_rank_math_metadata();
     locutora_configure_rank_math_identity();
 
