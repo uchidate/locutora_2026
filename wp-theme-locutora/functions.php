@@ -1377,32 +1377,23 @@ add_action('init', function () {
 	add_action('admin_menu', function (): void {
 	    remove_menu_page('edit-comments.php');
 
-	    add_menu_page(
-	        'Editar site',
-	        'Editar site',
-	        'edit_pages',
-	        'locutora-edit-site',
-	        locutora_admin_page_shortcut('home'),
-	        'dashicons-edit-page',
-	        20
-	    );
-
 	    $pages = [
-	        ['Início', 'home'],
-	        ['Sobre nós', 'sobre-nos'],
-	        ['Áudios', 'servicos'],
-	        ['Contato', 'contato'],
-	        ['Política de Privacidade', 'politica-de-privacidade'],
+	        ['Início', 'home', 'dashicons-admin-home', 20],
+	        ['Sobre nós', 'sobre-nos', 'dashicons-id', 21],
+	        ['Áudios', 'servicos', 'dashicons-playlist-audio', 22],
+	        ['Contato', 'contato', 'dashicons-email-alt', 23],
+	        ['Política', 'politica-de-privacidade', 'dashicons-privacy', 24],
 	    ];
 
-	    foreach ($pages as [$label, $slug]) {
-	        add_submenu_page(
-	            'locutora-edit-site',
+	    foreach ($pages as [$label, $slug, $icon, $position]) {
+	        add_menu_page(
 	            $label,
 	            $label,
 	            'edit_pages',
 	            'locutora-edit-' . $slug,
-	            locutora_admin_page_shortcut($slug)
+	            locutora_admin_page_shortcut($slug),
+	            $icon,
+	            $position
 	        );
 	    }
 	}, 20);
