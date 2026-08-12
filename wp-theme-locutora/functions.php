@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 69;
+const LOCUTORA_SITE_CONFIG_VERSION = 70;
 
 const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
 const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
@@ -286,6 +286,23 @@ function locutora_default_page_blocks(string $slug): string {
 
 function locutora_protected_page_slugs(): array {
     return ['home', 'sobre-nos', 'servicos', 'contato', 'politica-de-privacidade'];
+}
+
+function locutora_migrate_legacy_contact_page_form(): void {
+    $page = get_page_by_path('contato', OBJECT, 'page');
+    if (!$page instanceof WP_Post) {
+        return;
+    }
+
+    $content = (string) $page->post_content;
+    if (!str_contains($content, 'contact_handler.php') && !str_contains($content, 'uk-form-stacked')) {
+        return;
+    }
+
+    wp_update_post([
+        'ID' => $page->ID,
+        'post_content' => wp_slash(locutora_default_page_blocks('contato')),
+    ]);
 }
 
 function locutora_migrate_editable_page_blocks(): void {
@@ -608,6 +625,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
     locutora_migrate_editable_page_blocks();
+    locutora_migrate_legacy_contact_page_form();
     locutora_migrate_contact_settings();
     locutora_ensure_media_categories();
     locutora_import_theme_media_to_library();
