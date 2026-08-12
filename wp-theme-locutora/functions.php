@@ -1375,7 +1375,9 @@ add_action('init', function () {
 	}
 
 	add_action('admin_menu', function (): void {
+	    remove_menu_page('edit.php');
 	    remove_menu_page('edit-comments.php');
+	    remove_menu_page('edit.php?post_type=demo');
 
 	    $pages = [
 	        ['Início', 'home', 'dashicons-admin-home', 20],
