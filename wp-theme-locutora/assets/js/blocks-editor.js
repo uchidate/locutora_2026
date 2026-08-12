@@ -402,6 +402,23 @@
         const value = props.attributes[field.name];
         return Array.isArray(value) ? value.length > 0 : plainText(value || '').length > 0;
       }).length;
+      const warnings = [];
+      fields.forEach(function (field) {
+        const value = props.attributes[field.name];
+        if (field.url && !plainText(value || '')) {
+          warnings.push(__('Confira o campo de link: ', 'locutora') + field.label);
+        }
+        if (/Alt$/i.test(field.name) && !plainText(value || '')) {
+          warnings.push(__('Adicione uma descrição para acessibilidade: ', 'locutora') + field.label);
+        }
+        if (field.gallery && Array.isArray(value)) {
+          value.forEach(function (item, index) {
+            if (item && typeof item === 'object' && item.url && !plainText(item.alt || '')) {
+              warnings.push(__('Marca ', 'locutora') + (index + 1) + __(' sem nome/descrição.', 'locutora'));
+            }
+          });
+        }
+      });
 
       function modeButton(nextMode, icon, label) {
         return el(Button, {
@@ -441,6 +458,12 @@
             el('span', null, filledFields + ' ' + __('campos preenchidos', 'locutora')),
             el('span', null, __('As alterações só vão ao ar depois de clicar em Atualizar.', 'locutora'))
           ),
+          warnings.length ? el('div', { className: 'locutora-block-editor__warnings' },
+            el('strong', null, __('Checklist antes de publicar', 'locutora')),
+            el('ul', null, warnings.slice(0, 4).map(function (warning, index) {
+              return el('li', { key: 'warning-' + index }, warning);
+            }))
+          ) : null,
           el('div', { className: 'locutora-block-editor__fields' }, controls)
         ) : null,
         mode === 'preview' ? el('div', { className: 'locutora-block-preview' },

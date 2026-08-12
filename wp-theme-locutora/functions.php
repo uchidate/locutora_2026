@@ -1529,8 +1529,18 @@ add_action('init', function () {
 	            $icon,
 	            $position
 	        );
-		    }
-		}, 20);
+	    }
+
+	    add_menu_page(
+	        'Manual rápido',
+	        'Manual rápido',
+	        'edit_pages',
+	        'locutora-manual',
+	        'locutora_render_admin_manual_page',
+	        'dashicons-book-alt',
+	        25
+	    );
+	}, 20);
 
 	function locutora_admin_quick_links(): array {
 	    return [
@@ -1542,9 +1552,22 @@ add_action('init', function () {
 	    ];
 	}
 
+	function locutora_public_page_url(string $slug): string {
+	    $page = get_page_by_path($slug, OBJECT, 'page');
+	    return $page instanceof WP_Post ? get_permalink($page) : home_url('/');
+	}
+
 	function locutora_admin_editor_url(string $slug): string {
 	    $page = get_page_by_path($slug, OBJECT, 'page');
 	    return $page instanceof WP_Post ? admin_url('post.php?post=' . $page->ID . '&action=edit') : admin_url('edit.php?post_type=page');
+	}
+
+	function locutora_page_modified_label(string $slug): string {
+	    $page = get_page_by_path($slug, OBJECT, 'page');
+	    if (!$page instanceof WP_Post) {
+	        return 'Página não encontrada';
+	    }
+	    return 'Atualizada em ' . get_the_modified_date('d/m/Y H:i', $page);
 	}
 
 	add_action('init', function (): void {
@@ -1594,10 +1617,11 @@ add_action('init', function () {
 	        echo '<p>Use os atalhos abaixo para editar o conteúdo principal do site.</p>';
 	        echo '<div class="locutora-dashboard-links">';
 	        foreach (locutora_admin_quick_links() as [$label, $slug, $icon]) {
-	            echo '<a class="locutora-dashboard-link" href="' . esc_url(locutora_admin_editor_url($slug)) . '"><span class="dashicons ' . esc_attr($icon) . '"></span><strong>' . esc_html($label) . '</strong></a>';
+	            echo '<div class="locutora-dashboard-link"><span class="dashicons ' . esc_attr($icon) . '"></span><div><strong>' . esc_html($label) . '</strong><small>' . esc_html(locutora_page_modified_label($slug)) . '</small><span><a href="' . esc_url(locutora_admin_editor_url($slug)) . '">Editar</a> · <a href="' . esc_url(locutora_public_page_url($slug)) . '" target="_blank" rel="noopener">Ver no site</a></span></div></div>';
 	        }
-	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('admin.php?page=locutora-contact-settings')) . '"><span class="dashicons dashicons-phone"></span><strong>Contato e redes</strong></a>';
-	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('upload.php')) . '"><span class="dashicons dashicons-format-gallery"></span><strong>Imagens e vídeos</strong></a>';
+	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('admin.php?page=locutora-contact-settings')) . '"><span class="dashicons dashicons-phone"></span><div><strong>Contato e redes</strong><small>Telefone, WhatsApp, e-mails e redes sociais</small></div></a>';
+	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('upload.php')) . '"><span class="dashicons dashicons-format-gallery"></span><div><strong>Imagens e vídeos</strong><small>Arquivos usados nas páginas do site</small></div></a>';
+	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('admin.php?page=locutora-manual')) . '"><span class="dashicons dashicons-book-alt"></span><div><strong>Manual rápido</strong><small>Como editar sem quebrar o site</small></div></a>';
 	        echo '</div>';
 	    });
 	});
@@ -1608,6 +1632,12 @@ add_action('init', function () {
 	        .locutora-dashboard-link { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 14px; text-decoration: none; color: #1d2327; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; }
 	        .locutora-dashboard-link:hover { border-color: #2271b1; color: #135e96; }
 	        .locutora-dashboard-link .dashicons { color: #b86f00; }
+	        .locutora-dashboard-link small,
+	        .locutora-dashboard-link span { display: block; margin-top: 4px; color: #646970; font-size: 12px; }
+	        .locutora-dashboard-link a { text-decoration: none; }
+	        .locutora-manual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; max-width: 1100px; }
+	        .locutora-manual-card { padding: 18px; background: #fff; border: 1px solid #dcdcde; border-left: 4px solid #b86f00; }
+	        .locutora-manual-card h2 { margin-top: 0; }
 	    </style>';
 	});
 
@@ -1620,6 +1650,63 @@ add_action('init', function () {
 	        return;
 	    }
 	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.</p></div>';
+	});
+
+	function locutora_render_admin_manual_page(): void {
+	    echo '<div class="wrap"><h1>Manual rápido</h1><p>Use este guia para manter o site sem mexer em áreas técnicas.</p><div class="locutora-manual-grid">';
+	    $cards = [
+	        ['Editar páginas', 'Use os itens Início, Sobre nós, Áudios, Contato e Política na lateral. Edite os blocos e clique em Atualizar.'],
+	        ['Textos e listas', 'Use negrito, links, bullets e títulos pela barra do editor. Evite colar texto vindo do Word com formatação estranha.'],
+	        ['Imagens e vídeos', 'Use Imagens e vídeos para enviar arquivos. Se for a mesma imagem, prefira trocar a imagem existente no bloco em vez de enviar duplicada.'],
+	        ['Marcas', 'Na página Sobre nós, use o bloco Marcas para adicionar, reordenar, trocar ou excluir logotipos. Preencha o nome/descrição da marca.'],
+	        ['Contato', 'Use Contato e redes para alterar telefone, WhatsApp, e-mails, redes sociais e o e-mail que recebe o formulário.'],
+	        ['SEO simples', 'Em cada página, preencha Título no Google e Descrição no Google. Textos curtos e claros funcionam melhor.'],
+	        ['Antes de publicar', 'Confira links, imagens, nomes das marcas e a prévia. Depois clique em Atualizar.'],
+	        ['O que evitar', 'Não mexa em Plugins, Aparência, Configurações ou Rank Math avançado sem apoio técnico.'],
+	    ];
+	    foreach ($cards as [$title, $body]) {
+	        echo '<section class="locutora-manual-card"><h2>' . esc_html($title) . '</h2><p>' . esc_html($body) . '</p></section>';
+	    }
+	    echo '</div></div>';
+	}
+
+	add_action('admin_notices', function (): void {
+	    $screen = get_current_screen();
+	    if (!$screen || $screen->base !== 'upload') {
+	        return;
+	    }
+	    echo '<div class="notice notice-info"><p><strong>Imagens e vídeos:</strong> mantenha nomes claros, evite enviar o mesmo arquivo várias vezes e use imagens leves sempre que possível.</p></div>';
+	});
+
+	add_action('add_meta_boxes_page', function (): void {
+	    add_meta_box('locutora_simple_seo', 'SEO simples', function (WP_Post $post): void {
+	        wp_nonce_field('locutora_simple_seo', 'locutora_simple_seo_nonce');
+	        $title = (string) get_post_meta($post->ID, 'rank_math_title', true);
+	        $description = (string) get_post_meta($post->ID, 'rank_math_description', true);
+	        echo '<p><label for="locutora_seo_title"><strong>Título no Google</strong></label></p>';
+	        echo '<input id="locutora_seo_title" name="locutora_seo_title" type="text" class="widefat" maxlength="70" value="' . esc_attr($title) . '" placeholder="Ex: Locutora profissional Adriana Rosa">';
+	        echo '<p><label for="locutora_seo_description"><strong>Descrição no Google</strong></label></p>';
+	        echo '<textarea id="locutora_seo_description" name="locutora_seo_description" class="widefat" rows="3" maxlength="160" placeholder="Resumo curto da página.">' . esc_textarea($description) . '</textarea>';
+	        echo '<p class="description">Sugestão: título com até 70 caracteres e descrição com até 160 caracteres.</p>';
+	    }, 'page', 'side', 'high');
+	});
+
+	add_action('save_post_page', function (int $post_id): void {
+	    if (!isset($_POST['locutora_simple_seo_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_simple_seo_nonce'])), 'locutora_simple_seo')) {
+	        return;
+	    }
+	    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+	        return;
+	    }
+	    if (!current_user_can('edit_page', $post_id)) {
+	        return;
+	    }
+	    if (isset($_POST['locutora_seo_title'])) {
+	        update_post_meta($post_id, 'rank_math_title', sanitize_text_field(wp_unslash($_POST['locutora_seo_title'])));
+	    }
+	    if (isset($_POST['locutora_seo_description'])) {
+	        update_post_meta($post_id, 'rank_math_description', sanitize_textarea_field(wp_unslash($_POST['locutora_seo_description'])));
+	    }
 	});
 
 	/* ─── Conteúdo principal no Personalizador nativo ─── */

@@ -144,6 +144,30 @@ body {
   white-space: nowrap;
 }
 
+.editor-styles-wrapper .locutora-block-editor__warnings {
+  margin: -10px 0 24px;
+  padding: 12px 14px;
+  color: var(--loc-editor-muted);
+  background: #fff8e5;
+  border: 1px solid #f0d28a;
+  border-left: 3px solid var(--loc-editor-accent);
+  font-size: 12px;
+}
+
+.editor-styles-wrapper .locutora-block-editor__warnings strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--loc-editor-ink);
+}
+
+.editor-styles-wrapper .locutora-block-editor__warnings ul {
+  margin: 0 0 0 18px;
+}
+
+.editor-styles-wrapper .locutora-block-editor__warnings li {
+  margin: 2px 0;
+}
+
 .editor-styles-wrapper .locutora-block-editor__fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
