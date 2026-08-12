@@ -2215,7 +2215,7 @@ add_action('acf/init', function (): void {
 	            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => LOCUTORA_DEFAULT_WHATSAPP_URL, 'instructions' => 'Use o link completo do WhatsApp, começando com https://wa.me/'],
 	            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal exibido', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
 	            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário exibido', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
-		            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mails que recebem o formulário', 'name' => 'form_recipient_email', 'type' => 'textarea', 'rows' => 3, 'default_value' => "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com", 'instructions' => 'As mensagens enviadas pela página Contato serão entregues nestes e-mails. Use um e-mail por linha ou separados por vírgula.'],
+		            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mails que recebem o formulário', 'name' => 'form_recipient_email', 'type' => 'textarea', 'rows' => 4, 'default_value' => "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com\nfabiouchidate@gmail.com", 'instructions' => 'As mensagens enviadas pela página Contato serão entregues nestes e-mails. Use um e-mail por linha ou separados por vírgula.'],
 	            ['key' => 'field_locutora_social_tab', 'label' => 'Redes sociais', 'name' => '', 'type' => 'tab', 'placement' => 'top'],
 	            ['key' => 'field_locutora_linkedin', 'label' => 'LinkedIn', 'name' => 'linkedin_url', 'type' => 'url', 'default_value' => 'https://www.linkedin.com/in/adrianarosa-voiceover/'],
 	            ['key' => 'field_locutora_instagram', 'label' => 'Instagram', 'name' => 'instagram_url', 'type' => 'url', 'default_value' => 'https://www.instagram.com/adriana.rosa_s'],
@@ -2259,7 +2259,7 @@ add_action('acf/init', function (): void {
 	}
 
 		function locutora_contact_recipients(): array {
-		    $raw = (string) locutora_setting('form_recipient_email', "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com");
+		    $raw = (string) locutora_setting('form_recipient_email', "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com\nfabiouchidate@gmail.com");
 		    $parts = preg_split('/[\s,;]+/', $raw) ?: [];
 		    $emails = [];
 		    foreach ($parts as $part) {
@@ -2269,7 +2269,7 @@ add_action('acf/init', function (): void {
 		        }
 		    }
 		    $emails = array_values(array_unique($emails));
-		    return $emails ?: ['adrianarosa@locutora.com', 'adrianarosa.voz@gmail.com'];
+		    return $emails ?: ['adrianarosa@locutora.com', 'adrianarosa.voz@gmail.com', 'fabiouchidate@gmail.com'];
 		}
 
 		function locutora_handle_contact(): void {
