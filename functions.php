@@ -1468,21 +1468,56 @@ add_filter('acf/settings/save_json', function () {
 
 /* ─── Configurações estruturadas com ACF gratuito ─── */
 add_action('init', function (): void {
-    register_post_type('locutora_config', [
-        'labels' => [
-            'name' => 'Configurações do site',
-            'singular_name' => 'Configurações do site',
-            'edit_item' => 'Editar configurações do site',
-        ],
-        'public' => false,
-        'show_ui' => true,
-        'show_in_menu' => true,
-        'menu_icon' => 'dashicons-admin-settings',
-        'supports' => ['title'],
-        'capability_type' => 'page',
-        'map_meta_cap' => true,
-    ]);
-}, 9);
+	    register_post_type('locutora_config', [
+	        'labels' => [
+	            'name' => 'Contato e redes',
+	            'singular_name' => 'Contato e redes',
+	            'edit_item' => 'Editar contato e redes',
+	        ],
+	        'public' => false,
+	        'show_ui' => true,
+	        'show_in_menu' => true,
+	        'menu_icon' => 'dashicons-phone',
+	        'supports' => ['title'],
+	        'capability_type' => 'page',
+	        'map_meta_cap' => true,
+	        'capabilities' => [
+	            'create_posts' => 'do_not_allow',
+	        ],
+	    ]);
+	}, 9);
+
+	add_action('admin_menu', function (): void {
+	    add_menu_page(
+	        'Contato e redes',
+	        'Contato e redes',
+	        'edit_pages',
+	        'locutora-contact-settings',
+	        function (): void {
+	            $post_id = locutora_config_post_id();
+	            if ($post_id > 0) {
+	                wp_safe_redirect(admin_url('post.php?post=' . $post_id . '&action=edit'));
+	                exit;
+	            }
+
+	            echo '<div class="wrap"><h1>Contato e redes</h1><p>As configurações ainda estão sendo criadas. Recarregue esta página em alguns segundos.</p></div>';
+	        },
+	        'dashicons-phone',
+	        58
+	    );
+	});
+
+	add_action('admin_head-post.php', function (): void {
+	    $screen = get_current_screen();
+	    if (!$screen || $screen->post_type !== 'locutora_config') {
+	        return;
+	    }
+	    echo '<style>
+	        body.post-type-locutora_config #titlediv,
+	        body.post-type-locutora_config #minor-publishing-actions,
+	        body.post-type-locutora_config #misc-publishing-actions { display: none; }
+	    </style>';
+	});
 
 function locutora_config_post_id(): int {
     $saved_id = (int) get_option('locutora_config_post_id', 0);
@@ -1507,11 +1542,11 @@ add_action('init', function (): void {
     if (!post_type_exists('locutora_config') || locutora_config_post_id() > 0) {
         return;
     }
-    $post_id = wp_insert_post([
-        'post_type' => 'locutora_config',
-        'post_status' => 'private',
-        'post_title' => 'Configurações da Locutora',
-    ]);
+	    $post_id = wp_insert_post([
+	        'post_type' => 'locutora_config',
+	        'post_status' => 'private',
+	        'post_title' => 'Contato e redes',
+	    ]);
     if (!is_wp_error($post_id) && $post_id > 0) {
         update_option('locutora_config_post_id', (int) $post_id, false);
     }
@@ -1532,21 +1567,25 @@ add_action('acf/init', function (): void {
     if (!function_exists('acf_add_local_field_group')) {
         return;
     }
-    acf_add_local_field_group([
-        'key' => 'group_locutora_site_settings',
-        'title' => 'Dados exibidos no site',
-        'fields' => [
-            ['key' => 'field_locutora_footer_logo', 'label' => 'Logo do rodapé', 'name' => 'footer_logo', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
-            ['key' => 'field_locutora_phone', 'label' => 'Telefone', 'name' => 'contact_phone', 'type' => 'text', 'default_value' => '(11) 98440-4171'],
-            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site'],
-            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
-            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
-            ['key' => 'field_locutora_linkedin', 'label' => 'LinkedIn', 'name' => 'linkedin_url', 'type' => 'url', 'default_value' => 'https://www.linkedin.com/in/adrianarosa-voiceover/'],
-            ['key' => 'field_locutora_instagram', 'label' => 'Instagram', 'name' => 'instagram_url', 'type' => 'url', 'default_value' => 'https://www.instagram.com/adriana.rosa_s'],
-            ['key' => 'field_locutora_youtube', 'label' => 'YouTube', 'name' => 'youtube_url', 'type' => 'url', 'default_value' => 'https://www.youtube.com/adrianalocutoracom'],
-            ['key' => 'field_locutora_copyright', 'label' => 'Ano dos direitos autorais', 'name' => 'copyright_year', 'type' => 'number', 'default_value' => 2026, 'min' => 2004, 'max' => 2100],
-            ['key' => 'field_locutora_social_image', 'label' => 'Imagem social padrão', 'name' => 'social_image', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
-        ],
+	    acf_add_local_field_group([
+	        'key' => 'group_locutora_site_settings',
+	        'title' => 'Contato e redes',
+	        'fields' => [
+	            ['key' => 'field_locutora_contact_note', 'label' => '', 'name' => 'contact_note', 'type' => 'message', 'message' => 'Estes dados aparecem no rodapé, na barra de contato do celular e nas informações estruturadas do site.', 'new_lines' => 'wpautop'],
+	            ['key' => 'field_locutora_phone', 'label' => 'Telefone exibido no rodapé', 'name' => 'contact_phone', 'type' => 'text', 'default_value' => '(11) 98440-4171', 'instructions' => 'Exemplo: (11) 98440-4171'],
+	            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site', 'instructions' => 'Use o link completo do WhatsApp, começando com https://wa.me/'],
+	            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal exibido', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
+	            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário exibido', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
+	            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mail que recebe o formulário', 'name' => 'form_recipient_email', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com', 'instructions' => 'As mensagens enviadas pela página Contato serão entregues neste e-mail.'],
+	            ['key' => 'field_locutora_social_tab', 'label' => 'Redes sociais', 'name' => '', 'type' => 'tab', 'placement' => 'top'],
+	            ['key' => 'field_locutora_linkedin', 'label' => 'LinkedIn', 'name' => 'linkedin_url', 'type' => 'url', 'default_value' => 'https://www.linkedin.com/in/adrianarosa-voiceover/'],
+	            ['key' => 'field_locutora_instagram', 'label' => 'Instagram', 'name' => 'instagram_url', 'type' => 'url', 'default_value' => 'https://www.instagram.com/adriana.rosa_s'],
+	            ['key' => 'field_locutora_youtube', 'label' => 'YouTube', 'name' => 'youtube_url', 'type' => 'url', 'default_value' => 'https://www.youtube.com/adrianalocutoracom'],
+	            ['key' => 'field_locutora_brand_tab', 'label' => 'Rodapé e SEO', 'name' => '', 'type' => 'tab', 'placement' => 'top'],
+	            ['key' => 'field_locutora_footer_logo', 'label' => 'Logo do rodapé', 'name' => 'footer_logo', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
+	            ['key' => 'field_locutora_copyright', 'label' => 'Ano dos direitos autorais', 'name' => 'copyright_year', 'type' => 'number', 'default_value' => 2026, 'min' => 2004, 'max' => 2100],
+	            ['key' => 'field_locutora_social_image', 'label' => 'Imagem social padrão', 'name' => 'social_image', 'type' => 'image', 'return_format' => 'url', 'preview_size' => 'medium'],
+	        ],
         'location' => [[['param' => 'post_type', 'operator' => '==', 'value' => 'locutora_config']]],
         'position' => 'normal',
         'style' => 'seamless',
@@ -1564,8 +1603,9 @@ function locutora_handle_contact(): void {
     $telefone = sanitize_text_field(wp_unslash($_POST['telefone'] ?? ''));
     $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
     $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
-    $ok = $nome && is_email($email) && $assunto && wp_mail(
-        get_option('admin_email'),
+	    $recipient = sanitize_email((string) locutora_setting('form_recipient_email', get_option('admin_email')));
+	    $ok = $nome && is_email($email) && $assunto && is_email($recipient) && wp_mail(
+	        $recipient,
         '[Locutora.com] ' . $assunto,
         "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
         ['Reply-To: ' . $nome . ' <' . $email . '>']
