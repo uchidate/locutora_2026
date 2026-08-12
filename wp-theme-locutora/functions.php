@@ -2215,7 +2215,7 @@ add_action('acf/init', function (): void {
 	            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => LOCUTORA_DEFAULT_WHATSAPP_URL, 'instructions' => 'Use o link completo do WhatsApp, começando com https://wa.me/'],
 	            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal exibido', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
 	            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário exibido', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
-	            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mail que recebe o formulário', 'name' => 'form_recipient_email', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com', 'instructions' => 'As mensagens enviadas pela página Contato serão entregues neste e-mail.'],
+		            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mails que recebem o formulário', 'name' => 'form_recipient_email', 'type' => 'textarea', 'rows' => 3, 'default_value' => "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com", 'instructions' => 'As mensagens enviadas pela página Contato serão entregues nestes e-mails. Use um e-mail por linha ou separados por vírgula.'],
 	            ['key' => 'field_locutora_social_tab', 'label' => 'Redes sociais', 'name' => '', 'type' => 'tab', 'placement' => 'top'],
 	            ['key' => 'field_locutora_linkedin', 'label' => 'LinkedIn', 'name' => 'linkedin_url', 'type' => 'url', 'default_value' => 'https://www.linkedin.com/in/adrianarosa-voiceover/'],
 	            ['key' => 'field_locutora_instagram', 'label' => 'Instagram', 'name' => 'instagram_url', 'type' => 'url', 'default_value' => 'https://www.instagram.com/adriana.rosa_s'],
@@ -2258,7 +2258,21 @@ add_action('acf/init', function (): void {
 	    }
 	}
 
-	function locutora_handle_contact(): void {
+		function locutora_contact_recipients(): array {
+		    $raw = (string) locutora_setting('form_recipient_email', "adrianarosa@locutora.com\nadrianarosa.voz@gmail.com");
+		    $parts = preg_split('/[\s,;]+/', $raw) ?: [];
+		    $emails = [];
+		    foreach ($parts as $part) {
+		        $email = sanitize_email($part);
+		        if ($email && is_email($email)) {
+		            $emails[] = $email;
+		        }
+		    }
+		    $emails = array_values(array_unique($emails));
+		    return $emails ?: ['adrianarosa@locutora.com', 'adrianarosa.voz@gmail.com'];
+		}
+
+		function locutora_handle_contact(): void {
 	    $nonce = sanitize_text_field(wp_unslash($_POST['locutora_contact_nonce'] ?? ''));
 	    $has_valid_nonce = $nonce !== '' && wp_verify_nonce($nonce, 'locutora_contact');
 	    $nome = sanitize_text_field(wp_unslash($_POST['nome'] ?? ''));
@@ -2266,18 +2280,18 @@ add_action('acf/init', function (): void {
 	    $telefone = sanitize_text_field(wp_unslash($_POST['telefone'] ?? ''));
 	    $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
 	    $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
-	    $recipient = sanitize_email((string) locutora_setting('form_recipient_email', get_option('admin_email')));
-	    $ok = false;
-	    $error = '';
-	    if (!$has_valid_nonce) {
-	        $error = 'Token de segurança ausente ou expirado.';
-	    } elseif (!$nome || !is_email($email) || !$assunto || !is_email($recipient)) {
-	        $error = 'Dados obrigatórios inválidos.';
-	    } else {
-	        $ok = wp_mail(
-	            $recipient,
-	            '[Locutora.com] ' . $assunto,
-	            "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
+		    $recipients = locutora_contact_recipients();
+		    $ok = false;
+		    $error = '';
+		    if (!$has_valid_nonce) {
+		        $error = 'Token de segurança ausente ou expirado.';
+		    } elseif (!$nome || !is_email($email) || !$assunto || $recipients === []) {
+		        $error = 'Dados obrigatórios inválidos.';
+		    } else {
+		        $ok = wp_mail(
+		            $recipients,
+		            '[Locutora.com] ' . $assunto,
+		            "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
 	            ['Reply-To: ' . $nome . ' <' . $email . '>']
 	        );
 	        if (!$ok) {
@@ -2291,7 +2305,7 @@ add_action('acf/init', function (): void {
 	        'telefone' => $telefone,
 	        'assunto' => $assunto,
 	        'mensagem' => $mensagem,
-	        'recipient' => $recipient,
+		        'recipient' => implode(', ', $recipients),
 	        'nonce' => $has_valid_nonce ? 'válido' : 'ausente ou expirado',
 	    ], (bool) $ok, $error);
 
