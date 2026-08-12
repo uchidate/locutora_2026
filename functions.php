@@ -228,17 +228,40 @@ function locutora_seed_home_blocks(): void {
 
     wp_update_post([
         'ID' => $home_page->ID,
-        'post_content' => implode("\n\n", [
-            '<!-- wp:locutora/hero /-->',
-            '<!-- wp:locutora/intro /-->',
-            '<!-- wp:locutora/services /-->',
-            '<!-- wp:locutora/contact-cta /-->',
-        ]),
+        'post_content' => locutora_default_page_blocks('home'),
     ]);
 }
 
 function locutora_seed_internal_blocks(): void {
     $pages = [
+        'sobre-nos' => locutora_default_page_blocks('sobre-nos'),
+        'servicos' => locutora_default_page_blocks('servicos'),
+        'contato' => locutora_default_page_blocks('contato'),
+    ];
+
+    foreach ($pages as $slug => $content) {
+        $page = get_page_by_path($slug, OBJECT, 'page');
+        if (!$page instanceof WP_Post) {
+            continue;
+        }
+
+        $current_content = trim((string) $page->post_content);
+        if ($current_content !== '') {
+            continue;
+        }
+
+        wp_update_post(['ID' => $page->ID, 'post_content' => $content]);
+    }
+}
+
+function locutora_default_page_blocks(string $slug): string {
+    $defaults = [
+        'home' => [
+            '<!-- wp:locutora/hero /-->',
+            '<!-- wp:locutora/intro /-->',
+            '<!-- wp:locutora/services /-->',
+            '<!-- wp:locutora/contact-cta /-->',
+        ],
         'sobre-nos' => [
             '<!-- wp:locutora/internal-hero {"title":"Sobre nós:","variant":"sobre"} /-->',
             '<!-- wp:locutora/about-story /-->',
@@ -253,21 +276,16 @@ function locutora_seed_internal_blocks(): void {
             '<!-- wp:locutora/internal-hero {"title":"Contato","variant":"contact"} /-->',
             '<!-- wp:locutora/contact-form /-->',
         ],
+        'politica-de-privacidade' => [
+            locutora_privacy_editor_block(locutora_privacy_default_content()),
+        ],
     ];
 
-    foreach ($pages as $slug => $blocks) {
-        $page = get_page_by_path($slug, OBJECT, 'page');
-        if (!$page instanceof WP_Post) {
-            continue;
-        }
+    return isset($defaults[$slug]) ? implode("\n\n", $defaults[$slug]) : '';
+}
 
-        $current_content = trim((string) $page->post_content);
-        if ($current_content !== '') {
-            continue;
-        }
-
-        wp_update_post(['ID' => $page->ID, 'post_content' => implode("\n\n", $blocks)]);
-    }
+function locutora_protected_page_slugs(): array {
+    return ['home', 'sobre-nos', 'servicos', 'contato', 'politica-de-privacidade'];
 }
 
 function locutora_migrate_editable_page_blocks(): void {
@@ -1516,7 +1534,7 @@ add_action('init', function () {
     ]);
 });
 
-/* ─── CPT: Serviços (editável pela administradora) ─── */
+	/* ─── CPT: Serviços (editável pela administradora) ─── */
 add_action('init', function () {
     register_post_type('servico', [
         'labels' => [
@@ -1533,7 +1551,27 @@ add_action('init', function () {
 	        'menu_icon'    => 'dashicons-megaphone',
 	        'supports'     => ['title', 'editor', 'page-attributes'],
 	    ]);
-	});
+		});
+
+	add_action('init', function (): void {
+	    register_post_type('locutora_contact_log', [
+	        'labels' => [
+	            'name' => 'Envios do formulário',
+	            'singular_name' => 'Envio do formulário',
+	            'edit_item' => 'Ver envio do formulário',
+	        ],
+	        'public' => false,
+	        'show_ui' => true,
+	        'show_in_menu' => true,
+	        'menu_icon' => 'dashicons-email',
+	        'supports' => ['title', 'editor'],
+	        'capability_type' => 'page',
+	        'map_meta_cap' => true,
+	        'capabilities' => [
+	            'create_posts' => 'do_not_allow',
+	        ],
+	    ]);
+	}, 9);
 
 	function locutora_redirect_to_page_editor(string $slug): void {
 	    $page = get_page_by_path($slug, OBJECT, 'page');
@@ -1639,6 +1677,54 @@ add_action('init', function () {
 	    exit;
 	});
 
+	add_filter('pre_trash_post', function ($trash, WP_Post $post) {
+	    if ($post->post_type === 'page' && in_array($post->post_name, locutora_protected_page_slugs(), true)) {
+	        return false;
+	    }
+	    return $trash;
+	}, 10, 2);
+
+	add_filter('user_has_cap', function (array $allcaps, array $caps, array $args): array {
+	    $cap = (string) ($args[0] ?? '');
+	    $post_id = (int) ($args[2] ?? 0);
+	    if (!in_array($cap, ['delete_post', 'delete_page'], true) || $post_id <= 0) {
+	        return $allcaps;
+	    }
+	    $post = get_post($post_id);
+	    if ($post instanceof WP_Post && $post->post_type === 'page' && in_array($post->post_name, locutora_protected_page_slugs(), true)) {
+	        $allcaps[$cap] = false;
+	        $allcaps['delete_pages'] = false;
+	        $allcaps['delete_others_pages'] = false;
+	        $allcaps['delete_published_pages'] = false;
+	    }
+	    return $allcaps;
+	}, 10, 3);
+
+	function locutora_restore_page_url(int $post_id): string {
+	    return wp_nonce_url(admin_url('admin-post.php?action=locutora_restore_default_page&post_id=' . $post_id), 'locutora_restore_default_page_' . $post_id);
+	}
+
+	add_action('admin_post_locutora_restore_default_page', function (): void {
+	    $post_id = (int) ($_GET['post_id'] ?? 0);
+	    if ($post_id <= 0 || !current_user_can('edit_page', $post_id) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'] ?? '')), 'locutora_restore_default_page_' . $post_id)) {
+	        wp_die('Restauração não autorizada.', 403);
+	    }
+	    $post = get_post($post_id);
+	    if (!$post instanceof WP_Post || $post->post_type !== 'page' || !in_array($post->post_name, locutora_protected_page_slugs(), true)) {
+	        wp_die('Página não encontrada.', 404);
+	    }
+	    $content = locutora_default_page_blocks($post->post_name);
+	    if ($content === '') {
+	        wp_die('Não há padrão cadastrado para esta página.', 404);
+	    }
+	    wp_update_post([
+	        'ID' => $post_id,
+	        'post_content' => wp_slash($content),
+	    ]);
+	    wp_safe_redirect(add_query_arg('locutora_restored', '1', admin_url('post.php?post=' . $post_id . '&action=edit')));
+	    exit;
+	});
+
 	add_action('init', function (): void {
 	    $caps = [
 	        'read' => true,
@@ -1646,11 +1732,57 @@ add_action('init', function () {
 	        'edit_pages' => true,
 	        'edit_others_pages' => true,
 	        'edit_published_pages' => true,
+	        'edit_private_pages' => true,
+	        'read_private_pages' => true,
 	        'publish_pages' => true,
 	        'delete_pages' => false,
 	    ];
 	    add_role('locutora_site_manager', 'Administradora do site', $caps);
+	    $role = get_role('locutora_site_manager');
+	    if ($role instanceof WP_Role) {
+	        foreach ($caps as $cap => $grant) {
+	            $role->add_cap($cap, $grant);
+	        }
+	    }
 	}, 30);
+
+	add_action('admin_post_locutora_create_site_manager', function (): void {
+	    if (!current_user_can('create_users') || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_create_user_nonce'] ?? '')), 'locutora_create_site_manager')) {
+	        wp_die('Criação de usuário não autorizada.', 403);
+	    }
+
+	    $name = sanitize_text_field(wp_unslash($_POST['locutora_manager_name'] ?? ''));
+	    $email = sanitize_email(wp_unslash($_POST['locutora_manager_email'] ?? ''));
+	    $redirect = admin_url('admin.php?page=locutora-manual');
+
+	    if (!$name || !is_email($email)) {
+	        wp_safe_redirect(add_query_arg('locutora_user_error', 'invalid', $redirect));
+	        exit;
+	    }
+
+	    if (email_exists($email) || username_exists($email)) {
+	        wp_safe_redirect(add_query_arg('locutora_user_error', 'exists', $redirect));
+	        exit;
+	    }
+
+	    $password = wp_generate_password(24, true, true);
+	    $user_id = wp_create_user($email, $password, $email);
+	    if (is_wp_error($user_id)) {
+	        wp_safe_redirect(add_query_arg('locutora_user_error', 'create', $redirect));
+	        exit;
+	    }
+
+	    wp_update_user([
+	        'ID' => (int) $user_id,
+	        'display_name' => $name,
+	        'first_name' => $name,
+	        'role' => 'locutora_site_manager',
+	    ]);
+	    wp_new_user_notification((int) $user_id, null, 'user');
+
+	    wp_safe_redirect(add_query_arg('locutora_user_created', rawurlencode($email), $redirect));
+	    exit;
+	});
 
 	function locutora_is_site_manager_only(): bool {
 	    $user = wp_get_current_user();
@@ -1738,11 +1870,30 @@ add_action('init', function () {
 	    $extra = in_array($post->post_name, ['home', 'politica-de-privacidade'], true)
 	        ? ' Para mudanças grandes, exporte uma cópia antes de editar.'
 	        : '';
-	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.' . esc_html($extra) . ' <a class="button button-small" href="' . esc_url(locutora_export_page_url((int) $post->ID)) . '">Exportar conteúdo</a></p></div>';
+	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.' . esc_html($extra) . ' <a class="button button-small" href="' . esc_url(locutora_export_page_url((int) $post->ID)) . '">Exportar conteúdo</a> <a class="button button-small" href="' . esc_url(locutora_restore_page_url((int) $post->ID)) . '" onclick="return window.prompt(\'Isto substituirá os blocos atuais desta página pelo conteúdo padrão. Para confirmar, digite RESTAURAR.\') === \'RESTAURAR\'">Restaurar padrão</a></p></div>';
+	});
+
+	add_action('admin_notices', function (): void {
+	    if (isset($_GET['locutora_restored'])) {
+	        echo '<div class="notice notice-success is-dismissible"><p>Conteúdo padrão restaurado.</p></div>';
+	    }
 	});
 
 	function locutora_render_admin_manual_page(): void {
-	    echo '<div class="wrap"><h1>Manual rápido</h1><p>Use este guia para manter o site sem mexer em áreas técnicas.</p><div class="locutora-manual-grid">';
+	    echo '<div class="wrap"><h1>Manual rápido</h1><p>Use este guia para manter o site sem mexer em áreas técnicas.</p>';
+	    if (isset($_GET['locutora_user_created'])) {
+	        echo '<div class="notice notice-success is-dismissible"><p>Usuária criada com o perfil <strong>Administradora do site</strong>. O WordPress enviou as instruções de acesso para ' . esc_html(sanitize_email(wp_unslash($_GET['locutora_user_created']))) . '.</p></div>';
+	    }
+	    if (isset($_GET['locutora_user_error'])) {
+	        $error = sanitize_key(wp_unslash($_GET['locutora_user_error']));
+	        $messages = [
+	            'invalid' => 'Preencha nome e e-mail válidos.',
+	            'exists' => 'Já existe um usuário com esse e-mail.',
+	            'create' => 'Não foi possível criar a usuária agora. Tente novamente.',
+	        ];
+	        echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($messages[$error] ?? 'Não foi possível criar a usuária.') . '</p></div>';
+	    }
+	    echo '<div class="locutora-manual-grid">';
 	    $cards = [
 	        ['Editar páginas', 'Use os itens Início, Sobre nós, Áudios, Contato e Política na lateral. Edite os blocos e clique em Atualizar.'],
 	        ['Textos e listas', 'Use negrito, links, bullets e títulos pela barra do editor. Evite colar texto vindo do Word com formatação estranha.'],
@@ -1756,7 +1907,20 @@ add_action('init', function () {
 	    foreach ($cards as [$title, $body]) {
 	        echo '<section class="locutora-manual-card"><h2>' . esc_html($title) . '</h2><p>' . esc_html($body) . '</p></section>';
 	    }
-	    echo '</div></div>';
+	    echo '</div>';
+	    if (current_user_can('create_users')) {
+	        echo '<section class="locutora-manual-card" style="max-width:720px;margin-top:18px;">';
+	        echo '<h2>Criar administradora do site</h2>';
+	        echo '<p>Use esta opção para criar a conta da pessoa que vai editar o conteúdo. Ela poderá editar páginas, mídia, contatos e envios do formulário, mas não terá acesso completo a plugins, tema e configurações técnicas.</p>';
+	        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
+	        wp_nonce_field('locutora_create_site_manager', 'locutora_create_user_nonce');
+	        echo '<input type="hidden" name="action" value="locutora_create_site_manager">';
+	        echo '<p><label><strong>Nome</strong><br><input type="text" class="regular-text" name="locutora_manager_name" required></label></p>';
+	        echo '<p><label><strong>E-mail</strong><br><input type="email" class="regular-text" name="locutora_manager_email" required></label></p>';
+	        echo '<p><button type="submit" class="button button-primary">Criar usuária com perfil limitado</button></p>';
+	        echo '</form></section>';
+	    }
+	    echo '</div>';
 	}
 
 	add_action('admin_notices', function (): void {
@@ -2049,8 +2213,33 @@ add_action('acf/init', function (): void {
     ]);
 });
 
-/* ─── Formulário de contato ─── */
-function locutora_handle_contact(): void {
+	/* ─── Formulário de contato ─── */
+	function locutora_log_contact_submission(array $data, bool $sent, string $error = ''): void {
+	    $status = $sent ? 'enviado' : 'falha';
+	    $post_id = wp_insert_post([
+	        'post_type' => 'locutora_contact_log',
+	        'post_status' => 'private',
+	        'post_title' => '[' . strtoupper($status) . '] ' . ((string) ($data['assunto'] ?? 'Contato pelo site')),
+	        'post_content' => implode("\n", [
+	            'Status: ' . $status,
+	            'Nome: ' . ((string) ($data['nome'] ?? '')),
+	            'E-mail: ' . ((string) ($data['email'] ?? '')),
+	            'Telefone: ' . ((string) ($data['telefone'] ?? '')),
+	            'Assunto: ' . ((string) ($data['assunto'] ?? '')),
+	            'Destinatário: ' . ((string) ($data['recipient'] ?? '')),
+	            $error ? 'Erro: ' . $error : '',
+	            '',
+	            ((string) ($data['mensagem'] ?? '')),
+	        ]),
+	    ]);
+
+	    if (!is_wp_error($post_id) && $post_id > 0) {
+	        update_post_meta((int) $post_id, 'locutora_contact_status', $status);
+	        update_post_meta((int) $post_id, 'locutora_contact_email', (string) ($data['email'] ?? ''));
+	    }
+	}
+
+	function locutora_handle_contact(): void {
     if (!isset($_POST['locutora_contact_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['locutora_contact_nonce'])), 'locutora_contact')) {
         wp_die('Solicitação inválida.', 403);
     }
@@ -2061,12 +2250,30 @@ function locutora_handle_contact(): void {
     $assunto = sanitize_text_field(wp_unslash($_POST['assunto'] ?? ''));
     $mensagem = sanitize_textarea_field(wp_unslash($_POST['mensagem'] ?? ''));
 	    $recipient = sanitize_email((string) locutora_setting('form_recipient_email', get_option('admin_email')));
-	    $ok = $nome && is_email($email) && $assunto && is_email($recipient) && wp_mail(
-	        $recipient,
-        '[Locutora.com] ' . $assunto,
-        "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
-        ['Reply-To: ' . $nome . ' <' . $email . '>']
-    );
+	    $ok = false;
+	    $error = '';
+	    if (!$nome || !is_email($email) || !$assunto || !is_email($recipient)) {
+	        $error = 'Dados obrigatórios inválidos.';
+	    } else {
+	        $ok = wp_mail(
+	            $recipient,
+	            '[Locutora.com] ' . $assunto,
+	            "Nome: {$nome}\nE-mail: {$email}\nTelefone: {$telefone}\n\n{$mensagem}",
+	            ['Reply-To: ' . $nome . ' <' . $email . '>']
+	        );
+	        if (!$ok) {
+	            $error = 'O WordPress não conseguiu enviar o e-mail.';
+	        }
+	    }
+
+	    locutora_log_contact_submission([
+	        'nome' => $nome,
+	        'email' => $email,
+	        'telefone' => $telefone,
+	        'assunto' => $assunto,
+	        'mensagem' => $mensagem,
+	        'recipient' => $recipient,
+	    ], (bool) $ok, $error);
 
     wp_safe_redirect(add_query_arg('enviado', $ok ? '1' : '0', home_url('/contato/')));
     exit;
