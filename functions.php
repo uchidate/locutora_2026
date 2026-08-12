@@ -1640,10 +1640,16 @@ add_action('init', function () {
 	        'locutora_render_admin_manual_page',
 	        'dashicons-book-alt',
 	        25
-	    );
-	}, 20);
+		    );
+		}, 20);
 
-	function locutora_admin_quick_links(): array {
+		add_action('admin_bar_menu', function (WP_Admin_Bar $admin_bar): void {
+		    $admin_bar->remove_node('customize');
+		    $admin_bar->remove_node('comments');
+		    $admin_bar->remove_node('new-content');
+		}, 999);
+
+		function locutora_admin_quick_links(): array {
 	    return [
 	        ['Início', 'home', 'dashicons-admin-home'],
 	        ['Sobre nós', 'sobre-nos', 'dashicons-id'],
