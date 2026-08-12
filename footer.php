@@ -1,5 +1,5 @@
 <?php
-$footer_logo = locutora_setting('footer_logo', get_template_directory_uri() . '/assets/images/footer-logo-locutora.png');
+$footer_logo = locutora_setting('footer_logo', function_exists('locutora_theme_media_url') ? locutora_theme_media_url('assets/images/footer-logo-locutora.png') : get_template_directory_uri() . '/assets/images/footer-logo-locutora.png');
 $contact_phone = (string) locutora_setting('contact_phone', '(11) 98440-4171');
 $whatsapp_url = (string) locutora_setting('whatsapp_url', defined('LOCUTORA_DEFAULT_WHATSAPP_URL') ? LOCUTORA_DEFAULT_WHATSAPP_URL : 'https://wa.me/5511984404171');
 $email_primary = (string) locutora_setting('email_primary', 'adrianarosa@locutora.com');
