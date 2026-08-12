@@ -143,8 +143,92 @@
       props.setAttributes(attributes);
     };
 
+    function normalizeImageItems(items) {
+      return (Array.isArray(items) ? items : []).map(function (item, index) {
+        if (typeof item === 'string') {
+          return { url: item, alt: __('Marca ', 'locutora') + (index + 1) };
+        }
+        return {
+          url: item && item.url ? item.url : '',
+          alt: item && item.alt ? item.alt : '',
+        };
+      }).filter(function (item) { return item.url; });
+    }
+
+    function normalizeServices(items) {
+      const defaults = [
+        { title: props.attributes.item1 || 'Comerciais', iconUrl: props.attributes.icon1Url || '', url: props.attributes.servicesUrl || '' },
+        { title: props.attributes.item2 || 'Emissoras de rádio e tv', iconUrl: props.attributes.icon2Url || '', url: props.attributes.servicesUrl || '' },
+        { title: props.attributes.item3 || 'Conteúdos para internet', iconUrl: props.attributes.icon3Url || '', url: props.attributes.servicesUrl || '' },
+        { title: props.attributes.item4 || 'E muito mais', iconUrl: props.attributes.icon4Url || '', url: props.attributes.servicesUrl || '' },
+      ];
+      return (Array.isArray(items) && items.length ? items : defaults).map(function (item) {
+        return {
+          title: item && item.title ? item.title : '',
+          url: item && item.url ? item.url : '',
+          iconUrl: item && item.iconUrl ? item.iconUrl : '',
+          iconAlt: item && item.iconAlt ? item.iconAlt : '',
+        };
+      });
+    }
+
+    function reorder(items, from, to) {
+      const next = items.slice();
+      const moved = next.splice(from, 1)[0];
+      next.splice(to, 0, moved);
+      return next;
+    }
+
+    if (field.repeater === 'services') {
+      const items = normalizeServices(value);
+      const updateItem = function (index, patch) {
+        update(items.map(function (item, itemIndex) {
+          return itemIndex === index ? Object.assign({}, item, patch) : item;
+        }));
+      };
+      return el(
+        BaseControl,
+        { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--gallery', help: __('Adicione, exclua e reorganize os serviços sem mexer no layout do site.', 'locutora') },
+        el('div', { className: 'locutora-editor-gallery__summary' },
+          el('strong', null, items.length + (items.length === 1 ? __(' serviço exibido', 'locutora') : __(' serviços exibidos', 'locutora'))),
+          el('span', null, __('A ordem abaixo é a mesma do site. Cada serviço pode ter ícone e destino próprios.', 'locutora'))
+        ),
+        el('div', { className: 'locutora-editor-repeaters' }, items.map(function (item, index) {
+          return el('div', { key: 'service-' + index, className: 'locutora-editor-repeater' },
+            el('div', { className: 'locutora-editor-repeater__top' },
+              el('strong', null, __('Serviço ', 'locutora') + (index + 1)),
+              el('div', { className: 'locutora-editor-repeater__moves' },
+                el(Button, { icon: 'arrow-up-alt2', label: __('Mover para cima', 'locutora'), disabled: index === 0, variant: 'tertiary', onClick: function () { update(reorder(items, index, index - 1)); } }),
+                el(Button, { icon: 'arrow-down-alt2', label: __('Mover para baixo', 'locutora'), disabled: index === items.length - 1, variant: 'tertiary', onClick: function () { update(reorder(items, index, index + 1)); } })
+              )
+            ),
+            el(TextControl, { label: __('Nome do serviço', 'locutora'), value: item.title, onChange: function (next) { updateItem(index, { title: next }); } }),
+            el(TextControl, { label: __('Destino ao clicar', 'locutora'), type: 'url', help: __('Exemplo: /servicos/ ou https://...', 'locutora'), value: item.url, onChange: function (next) { updateItem(index, { url: next }); } }),
+            item.iconUrl ? el('img', { src: item.iconUrl, alt: '', className: 'locutora-editor-media-preview' }) : null,
+            el(MediaUploadCheck, null,
+              el(MediaUpload, {
+                allowedTypes: ['image'],
+                onSelect: function (media) { updateItem(index, { iconUrl: media.url || '', iconAlt: media.alt || item.iconAlt || '' }); },
+                render: function (mediaProps) {
+                  return el(Button, { variant: 'secondary', onClick: mediaProps.open }, item.iconUrl ? __('Trocar ícone', 'locutora') : __('Escolher ícone', 'locutora'));
+                },
+              })
+            ),
+            el(TextControl, { label: __('Descrição do ícone', 'locutora'), value: item.iconAlt, onChange: function (next) { updateItem(index, { iconAlt: next }); } }),
+            el(Button, { icon: 'trash', isDestructive: true, variant: 'tertiary', onClick: function () {
+              if (window.confirm(__('Excluir este serviço?', 'locutora'))) {
+                update(items.filter(function (_, itemIndex) { return itemIndex !== index; }));
+              }
+            } }, __('Excluir serviço', 'locutora'))
+          );
+        })),
+        el(Button, { icon: 'plus-alt2', variant: 'primary', onClick: function () { update(items.concat([{ title: 'Novo serviço', url: '/servicos/', iconUrl: '', iconAlt: '' }])); } }, __('Adicionar serviço', 'locutora'))
+      );
+    }
+
     if (field.gallery) {
-      const defaultItems = editorSettings.defaultBrandUrls || [];
+      const defaultItems = normalizeImageItems(editorSettings.defaultBrandUrls || []);
+      const items = normalizeImageItems(value);
       return el(
         BaseControl,
         {
@@ -154,20 +238,29 @@
           help: __('Adicione imagens da Biblioteca de mídia ou remova somente as marcas que não deseja exibir.', 'locutora'),
         },
         el('div', { className: 'locutora-editor-gallery__summary' },
-          el('strong', null, value.length + (value.length === 1 ? __(' marca exibida', 'locutora') : __(' marcas exibidas', 'locutora'))),
+          el('strong', null, items.length + (items.length === 1 ? __(' marca exibida', 'locutora') : __(' marcas exibidas', 'locutora'))),
           el('span', null, __('Troque ou exclua cada logo individualmente. A ordem abaixo é a mesma do site.', 'locutora'))
         ),
-        value.length ? el('div', { className: 'locutora-editor-gallery' }, value.map(function (url, index) {
-          return el('div', { key: url + index, className: 'locutora-editor-gallery__item' },
-            el('img', { src: url, alt: __('Logotipo ', 'locutora') + (index + 1) }),
+        items.length ? el('div', { className: 'locutora-editor-gallery' }, items.map(function (item, index) {
+          return el('div', { key: item.url + index, className: 'locutora-editor-gallery__item' },
+            el('img', { src: item.url, alt: item.alt || __('Logotipo ', 'locutora') + (index + 1) }),
             el('span', { className: 'locutora-editor-gallery__number', 'aria-hidden': true }, index + 1),
+            el(TextControl, {
+              label: __('Nome/descrição da marca', 'locutora'),
+              value: item.alt,
+              onChange: function (next) {
+                update(items.map(function (brand, itemIndex) {
+                  return itemIndex === index ? Object.assign({}, brand, { alt: next }) : brand;
+                }));
+              },
+            }),
             el('div', { className: 'locutora-editor-gallery__item-actions' },
               el(MediaUploadCheck, null,
                 el(MediaUpload, {
                   allowedTypes: ['image'],
                   onSelect: function (media) {
-                    update(value.map(function (itemUrl, itemIndex) {
-                      return itemIndex === index ? (media.url || itemUrl) : itemUrl;
+                    update(items.map(function (brand, itemIndex) {
+                      return itemIndex === index ? { url: media.url || brand.url, alt: media.alt || brand.alt } : brand;
                     }));
                   },
                   render: function (mediaProps) {
@@ -179,12 +272,18 @@
                   },
                 })
               ),
+              el(Button, { icon: 'arrow-up-alt2', label: __('Mover para cima', 'locutora'), disabled: index === 0, variant: 'tertiary', onClick: function () { update(reorder(items, index, index - 1)); } }),
+              el(Button, { icon: 'arrow-down-alt2', label: __('Mover para baixo', 'locutora'), disabled: index === items.length - 1, variant: 'tertiary', onClick: function () { update(reorder(items, index, index + 1)); } }),
               el(Button, {
                 icon: 'trash',
                 label: __('Excluir logotipo ', 'locutora') + (index + 1),
                 isDestructive: true,
                 variant: 'tertiary',
-                onClick: function () { update(value.filter(function (_, itemIndex) { return itemIndex !== index; })); },
+                onClick: function () {
+                  if (window.confirm(__('Excluir esta marca?', 'locutora'))) {
+                    update(items.filter(function (_, itemIndex) { return itemIndex !== index; }));
+                  }
+                },
               }, __('Excluir', 'locutora'))
             )
           );
@@ -199,10 +298,12 @@
               multiple: true,
               gallery: true,
               onSelect: function (media) {
-                const selected = (Array.isArray(media) ? media : [media])
-                  .map(function (item) { return item.url || ''; })
-                  .filter(Boolean);
-                update(value.concat(selected).filter(function (url, index, urls) { return urls.indexOf(url) === index; }));
+                  const selected = (Array.isArray(media) ? media : [media])
+                  .map(function (item) { return { url: item.url || '', alt: item.alt || '' }; })
+                  .filter(function (item) { return item.url; });
+                update(items.concat(selected).filter(function (brand, index, brands) {
+                  return brands.findIndex(function (candidate) { return candidate.url === brand.url; }) === index;
+                }));
               },
               render: function (mediaProps) {
                 return el(Button, { icon: 'plus-alt2', variant: 'primary', onClick: mediaProps.open },
@@ -210,10 +311,14 @@
               },
             })
           ),
-          value.length ? el(Button, {
+          items.length ? el(Button, {
             variant: 'tertiary',
             isDestructive: true,
-            onClick: function () { update([]); },
+            onClick: function () {
+              if (window.confirm(__('Remover todas as marcas desta seção?', 'locutora'))) {
+                update([]);
+              }
+            },
           }, __('Remover todas', 'locutora')) : null,
           el(Button, {
             variant: 'tertiary',
@@ -368,7 +473,7 @@
         ),
         el('div', { className: 'privacy-page__content locutora-privacy-editor__blocks' },
           el(InnerBlocks, {
-            allowedBlocks: ['core/paragraph', 'core/heading', 'core/list', 'core/html'],
+            allowedBlocks: ['core/paragraph', 'core/heading', 'core/list'],
             templateLock: false,
             renderAppender: InnerBlocks.ButtonBlockAppender,
           })
@@ -402,7 +507,7 @@
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'content', label: 'Texto da apresentação', wysiwyg: true, rows: 16 },
         { name: 'buttonLabel', label: 'Texto do botão' },
-        { name: 'buttonUrl', label: 'Destino do botão' },
+        { name: 'buttonUrl', label: 'Destino do botão', url: true, help: 'Exemplo: /sobre-nos/ ou https://...' },
         { name: 'portraitUrl', label: 'Foto da locutora', media: true },
         { name: 'portraitAlt', label: 'Descrição da foto' },
       ],
@@ -416,15 +521,7 @@
         { name: 'title', label: 'Título', richtext: true },
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
-        { name: 'item1', label: 'Serviço 1' },
-        { name: 'item2', label: 'Serviço 2' },
-        { name: 'item3', label: 'Serviço 3' },
-        { name: 'item4', label: 'Serviço 4' },
-        { name: 'servicesUrl', label: 'Destino dos serviços' },
-        { name: 'icon1Url', label: 'Ícone do serviço 1', media: true },
-        { name: 'icon2Url', label: 'Ícone do serviço 2', media: true },
-        { name: 'icon3Url', label: 'Ícone do serviço 3', media: true },
-        { name: 'icon4Url', label: 'Ícone do serviço 4', media: true },
+        { name: 'items', label: 'Serviços exibidos', repeater: 'services' },
       ],
     },
     {
@@ -437,7 +534,7 @@
         { name: 'titleAlign', label: 'Alinhamento da chamada', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte da chamada', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'buttonLabel', label: 'Texto do botão' },
-        { name: 'buttonUrl', label: 'Destino do botão' },
+        { name: 'buttonUrl', label: 'Destino do botão', url: true, help: 'Exemplo: /contato/ ou https://...' },
         { name: 'videoUrl', label: 'Vídeo de fundo', media: true, allowedTypes: ['video'] },
       ],
     },
@@ -481,12 +578,7 @@
         { name: 'title', label: 'Nome', richtext: true },
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
-        { name: 'paragraph1', label: 'Biografia — parágrafo 1', wysiwyg: true, rows: 8 },
-        { name: 'paragraph2', label: 'Biografia — parágrafo 2', wysiwyg: true, rows: 8 },
-        { name: 'paragraph3', label: 'Biografia — parágrafo 3', wysiwyg: true, rows: 8 },
-        { name: 'paragraph4', label: 'Biografia — parágrafo 4', wysiwyg: true, rows: 8 },
-        { name: 'paragraph5', label: 'Biografia — parágrafo 5', wysiwyg: true, rows: 8 },
-        { name: 'paragraph6', label: 'Biografia — parágrafo 6', wysiwyg: true, rows: 8 },
+        { name: 'content', label: 'Texto da biografia', wysiwyg: true, rows: 22, help: 'Use parágrafos, negrito, links e listas quando necessário. O layout do site continua protegido.' },
         { name: 'imageUrl', label: 'Retrato', media: true },
         { name: 'imageAlt', label: 'Descrição do retrato' },
       ],

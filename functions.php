@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 64;
+const LOCUTORA_SITE_CONFIG_VERSION = 65;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -253,6 +253,83 @@ function locutora_seed_internal_blocks(): void {
     }
 }
 
+function locutora_migrate_editable_page_blocks(): void {
+    $page_slugs = ['home', 'sobre-nos', 'servicos', 'contato', 'politica-de-privacidade'];
+
+    foreach ($page_slugs as $slug) {
+        $page = get_page_by_path($slug, OBJECT, 'page');
+        if (!$page instanceof WP_Post || trim((string) $page->post_content) === '') {
+            continue;
+        }
+
+        $blocks = parse_blocks((string) $page->post_content);
+        $changed = locutora_migrate_editable_blocks($blocks);
+
+        if ($changed) {
+            wp_update_post([
+                'ID' => $page->ID,
+                'post_content' => wp_slash(serialize_blocks($blocks)),
+            ]);
+        }
+    }
+}
+
+function locutora_migrate_editable_blocks(array &$blocks): bool {
+    $changed = false;
+
+    foreach ($blocks as &$block) {
+        $name = $block['blockName'] ?? '';
+        $attrs = is_array($block['attrs'] ?? null) ? $block['attrs'] : [];
+
+        if ($name === 'locutora/services' && empty($attrs['items'])) {
+            $services_url = (string) ($attrs['servicesUrl'] ?? '');
+            $block['attrs']['items'] = [
+                ['title' => (string) ($attrs['item1'] ?? 'Comerciais'), 'url' => $services_url, 'iconUrl' => (string) ($attrs['icon1Url'] ?? ''), 'iconAlt' => ''],
+                ['title' => (string) ($attrs['item2'] ?? 'Emissoras de rádio e tv'), 'url' => $services_url, 'iconUrl' => (string) ($attrs['icon2Url'] ?? ''), 'iconAlt' => ''],
+                ['title' => (string) ($attrs['item3'] ?? 'Conteúdos para internet'), 'url' => $services_url, 'iconUrl' => (string) ($attrs['icon3Url'] ?? ''), 'iconAlt' => ''],
+                ['title' => (string) ($attrs['item4'] ?? 'E muito mais'), 'url' => $services_url, 'iconUrl' => (string) ($attrs['icon4Url'] ?? ''), 'iconAlt' => ''],
+            ];
+            foreach (['item1', 'item2', 'item3', 'item4', 'servicesUrl', 'icon1Url', 'icon2Url', 'icon3Url', 'icon4Url'] as $legacy_attr) {
+                unset($block['attrs'][$legacy_attr]);
+            }
+            $changed = true;
+        }
+
+        if ($name === 'locutora/about-bio' && empty($attrs['content'])) {
+            $paragraphs = locutora_about_bio_default_paragraphs();
+            $content = '';
+            foreach ($paragraphs as $index => $paragraph) {
+                $content .= locutora_rich_text((string) ($attrs['paragraph' . ($index + 1)] ?? $paragraph));
+            }
+            $block['attrs']['content'] = $content;
+            foreach (['paragraph1', 'paragraph2', 'paragraph3', 'paragraph4', 'paragraph5', 'paragraph6'] as $legacy_attr) {
+                unset($block['attrs'][$legacy_attr]);
+            }
+            $changed = true;
+        }
+
+        if ($name === 'locutora/brands') {
+            if (empty($attrs['images']) || !is_array($attrs['images'])) {
+                $block['attrs']['images'] = locutora_default_brand_items();
+                $changed = true;
+            } else {
+                $normalized = locutora_normalize_brand_items($attrs['images']);
+                if ($normalized !== $attrs['images']) {
+                    $block['attrs']['images'] = $normalized;
+                    $changed = true;
+                }
+            }
+        }
+
+        if (!empty($block['innerBlocks']) && is_array($block['innerBlocks'])) {
+            $changed = locutora_migrate_editable_blocks($block['innerBlocks']) || $changed;
+        }
+    }
+    unset($block);
+
+    return $changed;
+}
+
 /* ─── Configuração inicial segura ao ativar o tema ─── */
 function locutora_ensure_structural_page(string $slug, string $title, string $template = 'default'): int {
     $page = get_page_by_path($slug, OBJECT, 'page');
@@ -321,6 +398,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_privacy_blocks();
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
+    locutora_migrate_editable_page_blocks();
     locutora_apply_rank_math_metadata();
     locutora_configure_rank_math_identity();
 
@@ -782,21 +860,42 @@ function locutora_render_services_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Fazemos gravações para:';
     $services_url = $attributes['servicesUrl'] ?? '';
     $services_url = $services_url ?: home_url('/servicos/');
-    $services = [
-        [$attributes['item1'] ?? 'Comerciais', $attributes['icon1Url'] ?? '', 'servico-comerciais.webp'],
-        [$attributes['item2'] ?? 'Emissoras de rádio e tv', $attributes['icon2Url'] ?? '', 'servico-tv.webp'],
-        [$attributes['item3'] ?? 'Conteúdos para internet', $attributes['icon3Url'] ?? '', 'servico-internet.webp'],
-        [$attributes['item4'] ?? 'E muito mais', $attributes['icon4Url'] ?? '', 'servico-mais.webp'],
-    ];
+    $fallbacks = ['servico-comerciais.webp', 'servico-tv.webp', 'servico-internet.webp', 'servico-mais.webp'];
+    $services = [];
+
+    if (isset($attributes['items']) && is_array($attributes['items'])) {
+        foreach ($attributes['items'] as $index => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $services[] = [
+                'title' => (string) ($item['title'] ?? ''),
+                'url' => (string) ($item['url'] ?? $services_url),
+                'iconUrl' => (string) ($item['iconUrl'] ?? ''),
+                'iconAlt' => (string) ($item['iconAlt'] ?? ''),
+                'fallback' => $fallbacks[$index] ?? $fallbacks[3],
+            ];
+        }
+    }
+
+    if ($services === []) {
+        $services = [
+            ['title' => $attributes['item1'] ?? 'Comerciais', 'url' => $services_url, 'iconUrl' => $attributes['icon1Url'] ?? '', 'iconAlt' => '', 'fallback' => $fallbacks[0]],
+            ['title' => $attributes['item2'] ?? 'Emissoras de rádio e tv', 'url' => $services_url, 'iconUrl' => $attributes['icon2Url'] ?? '', 'iconAlt' => '', 'fallback' => $fallbacks[1]],
+            ['title' => $attributes['item3'] ?? 'Conteúdos para internet', 'url' => $services_url, 'iconUrl' => $attributes['icon3Url'] ?? '', 'iconAlt' => '', 'fallback' => $fallbacks[2]],
+            ['title' => $attributes['item4'] ?? 'E muito mais', 'url' => $services_url, 'iconUrl' => $attributes['icon4Url'] ?? '', 'iconAlt' => '', 'fallback' => $fallbacks[3]],
+        ];
+    }
 
     ob_start(); ?>
     <section class="services" id="servicos">
       <h2 class="section-title reveal reveal--fade"<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
       <div class="services-grid">
-        <?php foreach ($services as [$service_title, $icon_url, $fallback_icon]) : ?>
-          <a class="service-item reveal reveal--fade" href="<?php echo esc_url($services_url); ?>">
-            <img src="<?php echo esc_url($icon_url ?: get_template_directory_uri() . '/assets/images/' . $fallback_icon); ?>" alt="">
-            <h3 class="service-item__title"><?php echo esc_html($service_title); ?></h3>
+        <?php foreach ($services as $service) : ?>
+          <?php if (trim((string) $service['title']) === '') { continue; } ?>
+          <a class="service-item reveal reveal--fade" href="<?php echo esc_url($service['url'] ?: $services_url); ?>">
+            <img src="<?php echo esc_url($service['iconUrl'] ?: get_template_directory_uri() . '/assets/images/' . $service['fallback']); ?>" alt="<?php echo esc_attr($service['iconAlt']); ?>">
+            <h3 class="service-item__title"><?php echo esc_html($service['title']); ?></h3>
           </a>
         <?php endforeach; ?>
       </div>
@@ -888,15 +987,20 @@ function locutora_render_about_bio_block(array $attributes): string {
     $legacy_content = $attributes['content'] ?? locutora_about_bio_default_content();
     $uses_legacy_content = $legacy_content !== locutora_about_bio_default_content();
     $paragraphs = locutora_about_bio_default_paragraphs();
+    if (!$uses_legacy_content) {
+        $merged = '';
+        foreach ($paragraphs as $index => $paragraph) {
+            $merged .= locutora_rich_text((string) ($attributes['paragraph' . ($index + 1)] ?? $paragraph));
+        }
+        $legacy_content = $merged;
+    }
     $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/adriana-rosa-retrato.jpg';
     $image_alt = $attributes['imageAlt'] ?? 'Retrato ilustrado de Adriana Rosa';
     ob_start(); ?>
     <section class="about-story about-story--bio"><div class="about-bio__row">
       <figure class="about-bio__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
       <div class="about-bio__copy reveal reveal--slide-bottom"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
-        <?php if ($uses_legacy_content) : echo wp_kses_post($legacy_content); else : ?>
-          <?php foreach ($paragraphs as $index => $paragraph) : ?><?php echo locutora_rich_text((string) ($attributes['paragraph' . ($index + 1)] ?? $paragraph)); ?><?php endforeach; ?>
-        <?php endif; ?>
+        <?php echo wp_kses_post($legacy_content); ?>
       </div>
     </div></section>
     <?php return (string) ob_get_clean();
@@ -928,12 +1032,37 @@ function locutora_default_brand_urls(): array {
     return array_map(static fn(string $name): string => locutora_brand_asset_url(get_template_directory_uri() . '/assets/images/brands/' . $name . '.png'), $names);
 }
 
+function locutora_default_brand_items(): array {
+    return array_map(static function (string $url, int $index): array {
+        return ['url' => $url, 'alt' => 'Marca ' . ($index + 1)];
+    }, locutora_default_brand_urls(), array_keys(locutora_default_brand_urls()));
+}
+
+function locutora_normalize_brand_items(array $images): array {
+    $items = [];
+    foreach ($images as $index => $image) {
+        if (is_string($image)) {
+            $url = $image;
+            $alt = 'Marca ' . ($index + 1);
+        } elseif (is_array($image)) {
+            $url = (string) ($image['url'] ?? '');
+            $alt = (string) ($image['alt'] ?? ('Marca ' . ($index + 1)));
+        } else {
+            continue;
+        }
+        if ($url !== '') {
+            $items[] = ['url' => $url, 'alt' => $alt];
+        }
+    }
+    return $items;
+}
+
 function locutora_render_brands_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Conheça as marcas que já trabalhou';
-    $images = isset($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
+    $images = isset($attributes['images']) && is_array($attributes['images']) ? locutora_normalize_brand_items($attributes['images']) : locutora_default_brand_items();
     ob_start(); ?>
     <section class="brand-showcase"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2><div class="brand-grid">
-      <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url(locutora_brand_asset_url((string) $url)); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
+      <?php foreach ($images as $index => $image) : ?><img src="<?php echo esc_url(locutora_brand_asset_url((string) $image['url'])); ?>" alt="<?php echo esc_attr($image['alt'] ?: ('Marca ' . ($index + 1))); ?>" loading="lazy"><?php endforeach; ?>
     </div></section>
     <?php return (string) ob_get_clean();
 }
@@ -1045,11 +1174,12 @@ add_action('init', function (): void {
                 'portraitAlt' => ['type' => 'string', 'default' => 'Adriana Rosa, locutora profissional'],
             ],
         ],
-        'locutora/services' => [
-            'render_callback' => 'locutora_render_services_block',
-            'attributes' => [
-                'title' => ['type' => 'string', 'default' => 'Fazemos gravações para:'],
-                'item1' => ['type' => 'string', 'default' => 'Comerciais'],
+	        'locutora/services' => [
+	            'render_callback' => 'locutora_render_services_block',
+	            'attributes' => [
+	                'title' => ['type' => 'string', 'default' => 'Fazemos gravações para:'],
+	                'items' => ['type' => 'array', 'default' => []],
+	                'item1' => ['type' => 'string', 'default' => 'Comerciais'],
                 'item2' => ['type' => 'string', 'default' => 'Emissoras de rádio e tv'],
                 'item3' => ['type' => 'string', 'default' => 'Conteúdos para internet'],
                 'item4' => ['type' => 'string', 'default' => 'E muito mais'],
@@ -1107,13 +1237,13 @@ add_action('init', function (): void {
                 'imageAlt' => ['type' => 'string', 'default' => 'Retrato ilustrado de Adriana Rosa'],
             ],
         ],
-        'locutora/brands' => [
-            'render_callback' => 'locutora_render_brands_block',
-            'attributes' => [
-                'title' => ['type' => 'string', 'default' => 'Conheça as marcas que já trabalhou'],
-                'images' => ['type' => 'array', 'default' => locutora_default_brand_urls()],
-            ],
-        ],
+	        'locutora/brands' => [
+	            'render_callback' => 'locutora_render_brands_block',
+	            'attributes' => [
+	                'title' => ['type' => 'string', 'default' => 'Conheça as marcas que já trabalhou'],
+	                'images' => ['type' => 'array', 'default' => locutora_default_brand_items()],
+	            ],
+	        ],
         'locutora/audio-showcase' => [
             'render_callback' => 'locutora_render_audio_showcase_block',
             'attributes' => [
