@@ -1506,10 +1506,10 @@ add_action('init', function () {
 	    };
 	}
 
-	add_action('admin_menu', function (): void {
-	    remove_menu_page('edit.php');
-	    remove_menu_page('edit-comments.php');
-	    remove_menu_page('edit.php?post_type=demo');
+		add_action('admin_menu', function (): void {
+		    remove_menu_page('edit.php');
+		    remove_menu_page('edit-comments.php');
+		    remove_menu_page('edit.php?post_type=demo');
 
 	    $pages = [
 	        ['Início', 'home', 'dashicons-admin-home', 20],
@@ -1529,10 +1529,100 @@ add_action('init', function () {
 	            $icon,
 	            $position
 	        );
-	    }
-	}, 20);
+		    }
+		}, 20);
 
-/* ─── Conteúdo principal no Personalizador nativo ─── */
+	function locutora_admin_quick_links(): array {
+	    return [
+	        ['Início', 'home', 'dashicons-admin-home'],
+	        ['Sobre nós', 'sobre-nos', 'dashicons-id'],
+	        ['Áudios', 'servicos', 'dashicons-playlist-audio'],
+	        ['Contato', 'contato', 'dashicons-email-alt'],
+	        ['Política', 'politica-de-privacidade', 'dashicons-privacy'],
+	    ];
+	}
+
+	function locutora_admin_editor_url(string $slug): string {
+	    $page = get_page_by_path($slug, OBJECT, 'page');
+	    return $page instanceof WP_Post ? admin_url('post.php?post=' . $page->ID . '&action=edit') : admin_url('edit.php?post_type=page');
+	}
+
+	add_action('init', function (): void {
+	    $caps = [
+	        'read' => true,
+	        'upload_files' => true,
+	        'edit_pages' => true,
+	        'edit_others_pages' => true,
+	        'edit_published_pages' => true,
+	        'publish_pages' => true,
+	        'delete_pages' => false,
+	    ];
+	    add_role('locutora_site_manager', 'Administradora do site', $caps);
+	}, 30);
+
+	function locutora_is_site_manager_only(): bool {
+	    $user = wp_get_current_user();
+	    return in_array('locutora_site_manager', (array) $user->roles, true)
+	        && !in_array('administrator', (array) $user->roles, true);
+	}
+
+	add_action('admin_menu', function (): void {
+	    global $menu;
+	    if (isset($menu[10][0]) && $menu[10][2] === 'upload.php') {
+	        $menu[10][0] = 'Imagens e vídeos';
+	    }
+
+	    if (!locutora_is_site_manager_only()) {
+	        return;
+	    }
+
+	    remove_menu_page('themes.php');
+	    remove_menu_page('plugins.php');
+	    remove_menu_page('users.php');
+	    remove_menu_page('tools.php');
+	    remove_menu_page('options-general.php');
+	    remove_menu_page('rank-math');
+	}, 999);
+
+	add_action('wp_dashboard_setup', function (): void {
+	    remove_meta_box('dashboard_quick_press', 'dashboard', 'side');
+	    remove_meta_box('dashboard_primary', 'dashboard', 'side');
+	    remove_meta_box('dashboard_activity', 'dashboard', 'normal');
+	    remove_meta_box('dashboard_right_now', 'dashboard', 'normal');
+
+	    wp_add_dashboard_widget('locutora_admin_start', 'Editar site', function (): void {
+	        echo '<p>Use os atalhos abaixo para editar o conteúdo principal do site.</p>';
+	        echo '<div class="locutora-dashboard-links">';
+	        foreach (locutora_admin_quick_links() as [$label, $slug, $icon]) {
+	            echo '<a class="locutora-dashboard-link" href="' . esc_url(locutora_admin_editor_url($slug)) . '"><span class="dashicons ' . esc_attr($icon) . '"></span><strong>' . esc_html($label) . '</strong></a>';
+	        }
+	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('admin.php?page=locutora-contact-settings')) . '"><span class="dashicons dashicons-phone"></span><strong>Contato e redes</strong></a>';
+	        echo '<a class="locutora-dashboard-link" href="' . esc_url(admin_url('upload.php')) . '"><span class="dashicons dashicons-format-gallery"></span><strong>Imagens e vídeos</strong></a>';
+	        echo '</div>';
+	    });
+	});
+
+	add_action('admin_head', function (): void {
+	    echo '<style>
+	        .locutora-dashboard-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+	        .locutora-dashboard-link { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 14px; text-decoration: none; color: #1d2327; background: #fff; border: 1px solid #dcdcde; border-radius: 4px; }
+	        .locutora-dashboard-link:hover { border-color: #2271b1; color: #135e96; }
+	        .locutora-dashboard-link .dashicons { color: #b86f00; }
+	    </style>';
+	});
+
+	add_action('edit_form_after_title', function (WP_Post $post): void {
+	    if ($post->post_type !== 'page') {
+	        return;
+	    }
+	    $editable_slugs = ['home', 'sobre-nos', 'servicos', 'contato', 'politica-de-privacidade'];
+	    if (!in_array($post->post_name, $editable_slugs, true)) {
+	        return;
+	    }
+	    echo '<div class="notice notice-info inline"><p><strong>Como editar esta página:</strong> altere os blocos abaixo, use “Ver no site” para conferir a prévia e clique em “Atualizar” para publicar.</p></div>';
+	});
+
+	/* ─── Conteúdo principal no Personalizador nativo ─── */
 add_action('customize_register', function (WP_Customize_Manager $customizer) {
     $customizer->add_section('locutora_content', [
         'title'       => 'Conteúdo da página inicial',
