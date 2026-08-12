@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 60;
+const LOCUTORA_SITE_CONFIG_VERSION = 61;
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -104,21 +104,35 @@ function locutora_html_to_core_blocks(string $html): string {
     return implode("\n\n", $blocks);
 }
 
+function locutora_privacy_default_content(): string {
+    ob_start();
+    get_template_part('template-parts/privacy-content');
+    return trim((string) ob_get_clean());
+}
+
+function locutora_privacy_editor_block(string $content): string {
+    return serialize_block([
+        'blockName'    => 'locutora/privacy-content',
+        'attrs'        => ['content' => $content],
+        'innerBlocks'  => [],
+        'innerHTML'    => '',
+        'innerContent' => [],
+    ]);
+}
+
 function locutora_seed_privacy_blocks(): void {
     $privacy_page = get_page_by_path('politica-de-privacidade', OBJECT, 'page');
-    if (!$privacy_page instanceof WP_Post || trim((string) $privacy_page->post_content) !== '') {
+    if (!$privacy_page instanceof WP_Post || has_block('locutora/privacy-content', $privacy_page)) {
         return;
     }
 
-    ob_start();
-    get_template_part('template-parts/privacy-content');
-    $privacy_html = (string) ob_get_clean();
-    $privacy_blocks = locutora_html_to_core_blocks($privacy_html);
+    $current_content = trim((string) $privacy_page->post_content);
+    $privacy_html = $current_content !== '' ? do_blocks($current_content) : locutora_privacy_default_content();
 
-    if ($privacy_blocks !== '') {
+    if ($privacy_html !== '') {
         wp_update_post([
             'ID' => $privacy_page->ID,
-            'post_content' => $privacy_blocks,
+            'post_content' => locutora_privacy_editor_block($privacy_html),
         ]);
     }
 }
@@ -922,6 +936,11 @@ function locutora_render_contact_form_block(array $attributes): string {
     <?php return (string) ob_get_clean();
 }
 
+function locutora_render_privacy_content_block(array $attributes): string {
+    $content = (string) ($attributes['content'] ?? locutora_privacy_default_content());
+    return locutora_rich_text($content);
+}
+
 add_action('init', function (): void {
     $version = wp_get_theme()->get('Version');
     wp_register_script(
@@ -1047,6 +1066,12 @@ add_action('init', function (): void {
                 'subjectLabel' => ['type' => 'string', 'default' => 'Assunto *'],
                 'messageLabel' => ['type' => 'string', 'default' => 'Mensagem'],
                 'buttonLabel' => ['type' => 'string', 'default' => 'Enviar mensagem'],
+            ],
+        ],
+        'locutora/privacy-content' => [
+            'render_callback' => 'locutora_render_privacy_content_block',
+            'attributes' => [
+                'content' => ['type' => 'string', 'default' => locutora_privacy_default_content()],
             ],
         ],
     ];

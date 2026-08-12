@@ -242,33 +242,125 @@ body {
 
 .editor-styles-wrapper .locutora-editor-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 12px;
-  margin-bottom: 14px;
+  margin: 16px 0;
 }
 
 .editor-styles-wrapper .locutora-editor-gallery img {
-  width: 84px;
-  height: 84px;
+  width: 100%;
+  height: 96px;
+  padding: 10px;
   object-fit: contain;
   background: var(--loc-editor-paper);
   border: 1px solid var(--loc-editor-border);
+  border-radius: 3px;
+  box-sizing: border-box;
 }
 
 .editor-styles-wrapper .locutora-editor-gallery__item {
   position: relative;
+  min-width: 0;
 }
 
 .editor-styles-wrapper .locutora-editor-gallery__item .components-button {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  min-width: 28px;
-  height: 28px;
+  top: -6px;
+  right: -6px;
+  min-width: 44px;
+  height: 44px;
   padding: 0;
   color: var(--loc-editor-paper);
   background: var(--loc-editor-danger);
   border-radius: 50%;
+}
+
+@media (hover: hover) {
+  .editor-styles-wrapper .locutora-editor-gallery__item .components-button:hover {
+    color: var(--loc-editor-paper);
+    background: var(--loc-editor-danger);
+    transform: translateY(-1px);
+  }
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__item .components-button:focus-visible,
+.editor-styles-wrapper .locutora-editor-gallery__actions .components-button:focus-visible {
+  outline: 3px solid var(--loc-editor-focus);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__item .components-button:active,
+.editor-styles-wrapper .locutora-editor-gallery__actions .components-button:active {
+  transform: translateY(1px);
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__item .components-button:disabled,
+.editor-styles-wrapper .locutora-editor-gallery__actions .components-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__number {
+  position: absolute;
+  bottom: 5px;
+  left: 5px;
+  min-width: 22px;
+  padding: 2px 5px;
+  color: var(--loc-editor-paper);
+  background: var(--loc-editor-ink);
+  border-radius: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__summary strong,
+.editor-styles-wrapper .locutora-editor-gallery__summary span {
+  display: block;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__summary strong {
+  color: var(--loc-editor-ink);
+  font-size: 14px;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__summary span {
+  margin-top: 3px;
+  color: var(--loc-editor-muted);
+  font-size: 12px;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+  padding: 18px;
+  color: var(--loc-editor-muted);
+  background: var(--loc-editor-field);
+  border: 1px dashed var(--loc-editor-border-strong);
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__empty p {
+  margin: 0;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__actions .components-button {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__actions .components-button.is-primary {
+  color: var(--loc-editor-paper);
+  background: var(--loc-editor-ink);
 }
 
 .editor-styles-wrapper .locutora-block-preview {
@@ -364,6 +456,11 @@ body {
   position: static;
 }
 
+.locutora-editor-field--tall .wp-editor-container iframe,
+.locutora-editor-field--tall .wp-editor-area {
+  min-height: 620px;
+}
+
 @media (max-width: 768px) {
   .editor-styles-wrapper .is-root-container {
     padding-inline: 12px;
@@ -409,6 +506,16 @@ body {
   }
 
   .editor-styles-wrapper .locutora-block-editor__mode-button.components-button {
+    width: 100%;
+  }
+
+  .editor-styles-wrapper .locutora-editor-gallery__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editor-styles-wrapper .locutora-editor-gallery__actions .components-button {
+    justify-content: center;
     width: 100%;
   }
 }

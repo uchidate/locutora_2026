@@ -122,7 +122,7 @@
 
     return el(
       BaseControl,
-      { label: field.label, className: 'locutora-editor-field locutora-editor-field--wysiwyg', help: fieldHelp(field, initialValue) },
+      { label: field.label, className: 'locutora-editor-field locutora-editor-field--wysiwyg' + (field.tall ? ' locutora-editor-field--tall' : ''), help: fieldHelp(field, initialValue) },
       el('textarea', {
         id: editorId,
         ref: textareaRef,
@@ -145,28 +145,59 @@
     if (field.gallery) {
       return el(
         BaseControl,
-        { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--gallery' },
+        {
+          key: field.name,
+          label: field.label,
+          className: 'locutora-editor-field locutora-editor-field--gallery',
+          help: __('Adicione imagens da Biblioteca de mídia ou remova somente as marcas que não deseja exibir.', 'locutora'),
+        },
+        el('div', { className: 'locutora-editor-gallery__summary' },
+          el('strong', null, value.length
+            ? value.length + (value.length === 1 ? __(' marca adicionada', 'locutora') : __(' marcas adicionadas', 'locutora'))
+            : __('Logotipos padrão ativos', 'locutora')),
+          el('span', null, value.length
+            ? __('Use o botão × sobre um logo para removê-lo.', 'locutora')
+            : __('Adicione seus próprios logos para substituir o conjunto padrão.', 'locutora'))
+        ),
         value.length ? el('div', { className: 'locutora-editor-gallery' }, value.map(function (url, index) {
           return el('div', { key: url + index, className: 'locutora-editor-gallery__item' },
-            el('img', { src: url, alt: '' }),
+            el('img', { src: url, alt: __('Logotipo ', 'locutora') + (index + 1) }),
+            el('span', { className: 'locutora-editor-gallery__number', 'aria-hidden': true }, index + 1),
             el(Button, {
               icon: 'no-alt',
-              label: __('Remover logotipo', 'locutora'),
+              label: __('Remover logotipo ', 'locutora') + (index + 1),
               isDestructive: true,
               onClick: function () { update(value.filter(function (_, itemIndex) { return itemIndex !== index; })); },
             })
           );
-        })) : el('p', null, __('As imagens padrão do tema estão em uso.', 'locutora')),
-        el(MediaUploadCheck, null,
-          el(MediaUpload, {
-            allowedTypes: ['image'],
-            multiple: true,
-            gallery: true,
-            onSelect: function (media) { update(media.map(function (item) { return item.url; })); },
-            render: function (mediaProps) { return el(Button, { variant: 'secondary', onClick: mediaProps.open }, __('Selecionar logotipos', 'locutora')); },
-          })
+        })) : el('div', { className: 'locutora-editor-gallery__empty' },
+          el('span', { className: 'dashicons dashicons-format-gallery', 'aria-hidden': true }),
+          el('p', null, __('Nenhum logo personalizado adicionado.', 'locutora'))
         ),
-        value.length ? el(Button, { variant: 'tertiary', isDestructive: true, onClick: function () { update([]); } }, __('Usar logotipos padrão', 'locutora')) : null
+        el('div', { className: 'locutora-editor-gallery__actions' },
+          el(MediaUploadCheck, null,
+            el(MediaUpload, {
+              allowedTypes: ['image'],
+              multiple: true,
+              gallery: true,
+              onSelect: function (media) {
+                const selected = (Array.isArray(media) ? media : [media])
+                  .map(function (item) { return item.url || ''; })
+                  .filter(Boolean);
+                update(value.concat(selected).filter(function (url, index, urls) { return urls.indexOf(url) === index; }));
+              },
+              render: function (mediaProps) {
+                return el(Button, { icon: 'plus-alt2', variant: 'primary', onClick: mediaProps.open },
+                  value.length ? __('Adicionar mais marcas', 'locutora') : __('Adicionar marcas', 'locutora'));
+              },
+            })
+          ),
+          value.length ? el(Button, {
+            variant: 'tertiary',
+            isDestructive: true,
+            onClick: function () { update([]); },
+          }, __('Remover todas e usar padrões', 'locutora')) : null
+        )
       );
     }
 
@@ -452,6 +483,21 @@
         { name: 'buttonLabel', label: 'Texto do botão' },
       ],
     },
+    {
+      name: 'locutora/privacy-content',
+      title: 'Locutora — Política de Privacidade',
+      icon: 'privacy',
+      fields: [
+        {
+          name: 'content',
+          label: 'Texto completo da Política de Privacidade',
+          help: 'Todo o conteúdo desta página está reunido neste único campo. Use os formatos de título, listas e negrito para organizar o documento.',
+          wysiwyg: true,
+          tall: true,
+          rows: 34,
+        },
+      ],
+    },
   ];
 
   const sectionDescriptions = {
@@ -465,6 +511,7 @@
     'locutora/brands': 'Apresenta marcas atendidas e reforça a experiência profissional.',
     'locutora/audio-showcase': 'Introduz os players com amostras de voz e vídeo.',
     'locutora/contact-form': 'Define os nomes dos campos que o visitante preencherá.',
+    'locutora/privacy-content': 'Edite toda a Política de Privacidade em um único campo de texto, mantendo títulos, listas e links.',
   };
 
   definitions.forEach(function (definition) {
