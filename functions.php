@@ -688,7 +688,7 @@ function locutora_render_intro_block(array $attributes): string {
     <section class="legacy-intro" id="sobre">
       <div class="legacy-intro__copy reveal reveal--slide-top">
         <h2 class="section-title"<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
-        <?php echo wp_kses_post($content); ?>
+        <?php echo locutora_rich_text((string) $content); ?>
         <a href="<?php echo esc_url($button_url); ?>" class="legacy-link reveal reveal--slide-bottom"><?php echo esc_html($button_label); ?></a>
       </div>
       <figure class="legacy-intro__portrait reveal reveal--fade">
@@ -776,11 +776,11 @@ function locutora_render_about_story_block(array $attributes): string {
           <?php echo wp_kses_post($legacy_content); ?>
         <?php else : ?>
           <h3><?php echo esc_html($attributes['missionTitle'] ?? 'Missão'); ?></h3>
-          <p><?php echo esc_html($attributes['missionText'] ?? 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.'); ?></p>
+          <?php echo locutora_rich_text((string) ($attributes['missionText'] ?? 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.')); ?>
           <h3><?php echo esc_html($attributes['visionTitle'] ?? 'Visão'); ?></h3>
-          <p><?php echo esc_html($attributes['visionText'] ?? 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.'); ?></p>
+          <?php echo locutora_rich_text((string) ($attributes['visionText'] ?? 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.')); ?>
           <h3><?php echo esc_html($attributes['valuesTitle'] ?? 'Valores'); ?></h3>
-          <p><?php echo esc_html($attributes['valuesText'] ?? 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.'); ?></p>
+          <?php echo locutora_rich_text((string) ($attributes['valuesText'] ?? 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.')); ?>
         <?php endif; ?>
       </div>
       <figure class="about-story__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
@@ -815,7 +815,7 @@ function locutora_render_about_bio_block(array $attributes): string {
       <figure class="about-bio__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
       <div class="about-bio__copy reveal reveal--slide-bottom"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2>
         <?php if ($uses_legacy_content) : echo wp_kses_post($legacy_content); else : ?>
-          <?php foreach ($paragraphs as $index => $paragraph) : ?><p><?php echo esc_html($attributes['paragraph' . ($index + 1)] ?? $paragraph); ?></p><?php endforeach; ?>
+          <?php foreach ($paragraphs as $index => $paragraph) : ?><?php echo locutora_rich_text((string) ($attributes['paragraph' . ($index + 1)] ?? $paragraph)); ?><?php endforeach; ?>
         <?php endif; ?>
       </div>
     </div></section>
@@ -927,10 +927,18 @@ add_action('init', function (): void {
     wp_register_script(
         'locutora-blocks-editor',
         get_template_directory_uri() . '/assets/js/blocks-editor.js',
-        ['wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render'],
+        ['wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render', 'editor', 'quicktags'],
         $version,
         true
     );
+
+    wp_localize_script('locutora-blocks-editor', 'locutoraEditorSettings', [
+        'contentCss' => [
+            includes_url('css/dashicons.css'),
+            includes_url('js/tinymce/skins/wordpress/wp-content.css'),
+            get_template_directory_uri() . '/assets/css/editor.css',
+        ],
+    ]);
 
     $blocks = [
         'locutora/hero' => [
@@ -1047,11 +1055,31 @@ add_action('init', function (): void {
         $settings['attributes']['titleAlign'] = ['type' => 'string', 'default' => ''];
         $settings['attributes']['titleFont'] = ['type' => 'string', 'default' => ''];
         register_block_type($name, array_merge($settings, [
-            'api_version' => 3,
+            // apiVersion 2 mantém o canvas do editor fora do iframe, condição
+            // para o TinyMCE clássico dos campos de texto funcionar.
+            'api_version' => 2,
             'editor_script' => 'locutora-blocks-editor',
         ]));
     }
 });
+
+/**
+ * Carrega o TinyMCE clássico (fonte, tamanho, parágrafo) dentro do editor de blocos.
+ */
+add_action('enqueue_block_editor_assets', function (): void {
+    wp_enqueue_editor();
+});
+
+/**
+ * Renderiza um texto de bloco preservando a formatação criada no editor.
+ */
+function locutora_rich_text(string $text): string {
+    if (!preg_match('/<(p|h[1-6]|ul|ol|blockquote|div)\b/i', $text)) {
+        $text = wpautop($text);
+    }
+
+    return wp_kses_post($text);
+}
 
 /* ─── CPT: Demo de áudio ─── */
 add_action('init', function () {
