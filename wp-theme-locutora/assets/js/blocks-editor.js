@@ -539,11 +539,11 @@
       icon: 'format-video',
       alwaysEdit: true,
       fields: [
-        { name: 'eyebrow', label: 'Linha superior' },
-        { name: 'title', label: 'Título', richtext: true },
+        { name: 'eyebrow', label: 'Linha superior', help: 'Texto menor acima do título. Pode mudar sem afetar tanto o Google.' },
+        { name: 'title', label: 'Título principal da Home (H1)', richtext: true, help: 'Campo mais importante da Home para SEO. Para preservar o ranking atual, mantenha “Locutora.com” ou algo muito próximo.' },
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
-        { name: 'subtitle', label: 'Subtítulo' },
+        { name: 'subtitle', label: 'Subtítulo', help: 'Complementa o título principal, sem substituir o H1.' },
       ],
     },
     {

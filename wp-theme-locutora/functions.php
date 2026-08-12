@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 70;
+const LOCUTORA_SITE_CONFIG_VERSION = 71;
 
 const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
 const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
@@ -503,11 +503,21 @@ function locutora_consolidate_theme_media_duplicates(): void {
 function locutora_migrate_editable_blocks(array &$blocks): bool {
     $changed = false;
 
-    foreach ($blocks as &$block) {
-        $name = $block['blockName'] ?? '';
-        $attrs = is_array($block['attrs'] ?? null) ? $block['attrs'] : [];
+	    foreach ($blocks as &$block) {
+	        $name = $block['blockName'] ?? '';
+	        $attrs = is_array($block['attrs'] ?? null) ? $block['attrs'] : [];
 
-        if ($name === 'locutora/services' && empty($attrs['items'])) {
+	        if ($name === 'locutora/hero') {
+	            $current_title = trim(wp_strip_all_tags((string) ($attrs['title'] ?? '')));
+	            if ($current_title === '' || $current_title === 'Gravações profissionais') {
+	                $block['attrs']['eyebrow'] = 'Gravações profissionais';
+	                $block['attrs']['title'] = 'Locutora.com';
+	                $block['attrs']['subtitle'] = 'Adriana Rosa — locutora profissional';
+	                $changed = true;
+	            }
+	        }
+
+	        if ($name === 'locutora/services' && empty($attrs['items'])) {
             $services_url = (string) ($attrs['servicesUrl'] ?? '');
             $block['attrs']['items'] = [
                 ['title' => (string) ($attrs['item1'] ?? 'Comerciais'), 'url' => $services_url, 'iconUrl' => (string) ($attrs['icon1Url'] ?? ''), 'iconAlt' => ''],
@@ -1041,9 +1051,9 @@ function locutora_heading_style_attribute(array $attributes): string {
 }
 
 function locutora_render_hero_block(array $attributes): string {
-    $eyebrow = $attributes['eyebrow'] ?? 'Locutora.com';
-    $title = $attributes['title'] ?? 'Gravações profissionais';
-    $subtitle = $attributes['subtitle'] ?? 'Adriana Rosa';
+    $eyebrow = $attributes['eyebrow'] ?? 'Gravações profissionais';
+    $title = $attributes['title'] ?? 'Locutora.com';
+    $subtitle = $attributes['subtitle'] ?? 'Adriana Rosa — locutora profissional';
     ob_start(); ?>
     <section class="hero" id="hero">
       <?php foreach ([1, 2, 3] as $index) : ?>
@@ -1165,9 +1175,9 @@ function locutora_render_internal_hero_block(array $attributes): string {
 }
 
 function locutora_about_story_default_content(): string {
-    return '<h3>Missão</h3><p>Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.</p>'
-        . '<h3>Visão</h3><p>Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.</p>'
-        . '<h3>Valores</h3><p>Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.</p>';
+    return '<h3>Missão</h3><p>Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas, agências, produtoras e seus públicos.</p>'
+        . '<h3>Visão</h3><p>Ser referência em locução profissional, reconhecida pela inovação, relacionamento próximo com cada cliente e resultados diferenciados para marcas reconhecidas.</p>'
+        . '<h3>Valores</h3><p>Excelência, inovação, personalização, profissionalismo, ética, comprometimento, conhecimento técnico e respeito em cada projeto.</p>';
 }
 
 function locutora_render_about_story_block(array $attributes): string {
@@ -1184,11 +1194,11 @@ function locutora_render_about_story_block(array $attributes): string {
           <?php echo wp_kses_post($legacy_content); ?>
         <?php else : ?>
           <h3><?php echo esc_html($attributes['missionTitle'] ?? 'Missão'); ?></h3>
-          <?php echo locutora_rich_text((string) ($attributes['missionText'] ?? 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.')); ?>
+          <?php echo locutora_rich_text((string) ($attributes['missionText'] ?? 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas, agências, produtoras e seus públicos.')); ?>
           <h3><?php echo esc_html($attributes['visionTitle'] ?? 'Visão'); ?></h3>
-          <?php echo locutora_rich_text((string) ($attributes['visionText'] ?? 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.')); ?>
+          <?php echo locutora_rich_text((string) ($attributes['visionText'] ?? 'Ser referência em locução profissional, reconhecida pela inovação, relacionamento próximo com cada cliente e resultados diferenciados para marcas reconhecidas.')); ?>
           <h3><?php echo esc_html($attributes['valuesTitle'] ?? 'Valores'); ?></h3>
-          <?php echo locutora_rich_text((string) ($attributes['valuesText'] ?? 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.')); ?>
+          <?php echo locutora_rich_text((string) ($attributes['valuesText'] ?? 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento, conhecimento técnico e respeito em cada projeto.')); ?>
         <?php endif; ?>
       </div>
       <figure class="about-story__image reveal reveal--fade"><img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>"></figure>
@@ -1384,14 +1394,14 @@ add_action('init', function (): void {
     ]);
 
     $blocks = [
-        'locutora/hero' => [
-            'render_callback' => 'locutora_render_hero_block',
-            'attributes' => [
-                'eyebrow' => ['type' => 'string', 'default' => 'Locutora.com'],
-                'title' => ['type' => 'string', 'default' => 'Gravações profissionais'],
-                'subtitle' => ['type' => 'string', 'default' => 'Adriana Rosa'],
-            ],
-        ],
+	        'locutora/hero' => [
+	            'render_callback' => 'locutora_render_hero_block',
+	            'attributes' => [
+	                'eyebrow' => ['type' => 'string', 'default' => 'Gravações profissionais'],
+	                'title' => ['type' => 'string', 'default' => 'Locutora.com'],
+	                'subtitle' => ['type' => 'string', 'default' => 'Adriana Rosa — locutora profissional'],
+	            ],
+	        ],
         'locutora/intro' => [
             'render_callback' => 'locutora_render_intro_block',
             'attributes' => [
@@ -1442,11 +1452,11 @@ add_action('init', function (): void {
                 'title' => ['type' => 'string', 'default' => "Fundada em 2004, em\nSão Paulo."],
                 'content' => ['type' => 'string', 'default' => locutora_about_story_default_content()],
                 'missionTitle' => ['type' => 'string', 'default' => 'Missão'],
-                'missionText' => ['type' => 'string', 'default' => 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas e seus públicos.'],
+	                'missionText' => ['type' => 'string', 'default' => 'Dar voz às marcas com criatividade, qualidade e atenção aos detalhes, criando conexões autênticas entre empresas, agências, produtoras e seus públicos.'],
                 'visionTitle' => ['type' => 'string', 'default' => 'Visão'],
-                'visionText' => ['type' => 'string', 'default' => 'Ser referência em locução profissional, reconhecida pela inovação e relacionamento próximo com cada cliente.'],
+	                'visionText' => ['type' => 'string', 'default' => 'Ser referência em locução profissional, reconhecida pela inovação, relacionamento próximo com cada cliente e resultados diferenciados para marcas reconhecidas.'],
                 'valuesTitle' => ['type' => 'string', 'default' => 'Valores'],
-                'valuesText' => ['type' => 'string', 'default' => 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento e respeito em cada projeto.'],
+	                'valuesText' => ['type' => 'string', 'default' => 'Excelência, inovação, personalização, profissionalismo, ética, comprometimento, conhecimento técnico e respeito em cada projeto.'],
                 'imageUrl' => ['type' => 'string', 'default' => ''],
                 'imageAlt' => ['type' => 'string', 'default' => 'Mesa de áudio de estúdio profissional'],
             ],
@@ -1925,6 +1935,8 @@ add_action('init', function () {
 	        ['Marcas', 'Na página Sobre nós, use o bloco Marcas para adicionar, reordenar, trocar ou excluir logotipos. Preencha o nome/descrição da marca.'],
 	        ['Contato', 'Use Contato e redes para alterar telefone, WhatsApp, e-mails, redes sociais e o e-mail que recebe o formulário.'],
 	        ['SEO simples', 'Em cada página, preencha Título no Google e Descrição no Google. Textos curtos e claros funcionam melhor.'],
+	        ['SEO da Home', 'Na página Início, o campo “Título principal da Home (H1)” é um dos sinais mais importantes para o Google. Mantenha Locutora.com ou algo muito próximo, salvo mudança planejada.'],
+	        ['SEO da Sobre nós', 'Na página Sobre nós, mantenha textos com experiência, serviços, marcas atendidas e termos como locutora profissional, publicidade, rádio, TV, URA e institucional.'],
 	        ['Antes de publicar', 'Confira links, imagens, nomes das marcas e a prévia. Depois clique em Atualizar.'],
 	        ['O que evitar', 'Não mexa em Plugins, Aparência, Configurações ou Rank Math avançado sem apoio técnico.'],
 	    ];
