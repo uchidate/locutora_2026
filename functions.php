@@ -5,7 +5,10 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 65;
+const LOCUTORA_SITE_CONFIG_VERSION = 66;
+
+const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
+const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
 
 /* ─── Suporte do tema ─── */
 add_action('after_setup_theme', function () {
@@ -274,6 +277,18 @@ function locutora_migrate_editable_page_blocks(): void {
     }
 }
 
+function locutora_migrate_contact_settings(): void {
+    $post_id = locutora_config_post_id();
+    if ($post_id <= 0) {
+        return;
+    }
+
+    $stored = (string) get_post_meta($post_id, 'whatsapp_url', true);
+    if ($stored === '' || $stored === LOCUTORA_LEGACY_WHATSAPP_URL) {
+        update_post_meta($post_id, 'whatsapp_url', LOCUTORA_DEFAULT_WHATSAPP_URL);
+    }
+}
+
 function locutora_migrate_editable_blocks(array &$blocks): bool {
     $changed = false;
 
@@ -399,6 +414,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_seed_home_blocks();
     locutora_seed_internal_blocks();
     locutora_migrate_editable_page_blocks();
+    locutora_migrate_contact_settings();
     locutora_apply_rank_math_metadata();
     locutora_configure_rank_math_identity();
 
@@ -1573,7 +1589,7 @@ add_action('acf/init', function (): void {
 	        'fields' => [
 	            ['key' => 'field_locutora_contact_note', 'label' => '', 'name' => 'contact_note', 'type' => 'message', 'message' => 'Estes dados aparecem no rodapé, na barra de contato do celular e nas informações estruturadas do site.', 'new_lines' => 'wpautop'],
 	            ['key' => 'field_locutora_phone', 'label' => 'Telefone exibido no rodapé', 'name' => 'contact_phone', 'type' => 'text', 'default_value' => '(11) 98440-4171', 'instructions' => 'Exemplo: (11) 98440-4171'],
-	            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site', 'instructions' => 'Use o link completo do WhatsApp, começando com https://wa.me/'],
+	            ['key' => 'field_locutora_whatsapp', 'label' => 'Link do WhatsApp', 'name' => 'whatsapp_url', 'type' => 'url', 'default_value' => LOCUTORA_DEFAULT_WHATSAPP_URL, 'instructions' => 'Use o link completo do WhatsApp, começando com https://wa.me/'],
 	            ['key' => 'field_locutora_email_primary', 'label' => 'E-mail principal exibido', 'name' => 'email_primary', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com'],
 	            ['key' => 'field_locutora_email_secondary', 'label' => 'E-mail secundário exibido', 'name' => 'email_secondary', 'type' => 'email', 'default_value' => 'adrianarosa.voz@gmail.com'],
 	            ['key' => 'field_locutora_form_recipient_email', 'label' => 'E-mail que recebe o formulário', 'name' => 'form_recipient_email', 'type' => 'email', 'default_value' => 'adrianarosa@locutora.com', 'instructions' => 'As mensagens enviadas pela página Contato serão entregues neste e-mail.'],
