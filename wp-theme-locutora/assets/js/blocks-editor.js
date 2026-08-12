@@ -144,6 +144,7 @@
     };
 
     if (field.gallery) {
+      const defaultItems = editorSettings.defaultBrandUrls || [];
       return el(
         BaseControl,
         {
@@ -153,27 +154,43 @@
           help: __('Adicione imagens da Biblioteca de mídia ou remova somente as marcas que não deseja exibir.', 'locutora'),
         },
         el('div', { className: 'locutora-editor-gallery__summary' },
-          el('strong', null, value.length
-            ? value.length + (value.length === 1 ? __(' marca adicionada', 'locutora') : __(' marcas adicionadas', 'locutora'))
-            : __('Logotipos padrão ativos', 'locutora')),
-          el('span', null, value.length
-            ? __('Use o botão × sobre um logo para removê-lo.', 'locutora')
-            : __('Adicione seus próprios logos para substituir o conjunto padrão.', 'locutora'))
+          el('strong', null, value.length + (value.length === 1 ? __(' marca exibida', 'locutora') : __(' marcas exibidas', 'locutora'))),
+          el('span', null, __('Troque ou exclua cada logo individualmente. A ordem abaixo é a mesma do site.', 'locutora'))
         ),
         value.length ? el('div', { className: 'locutora-editor-gallery' }, value.map(function (url, index) {
           return el('div', { key: url + index, className: 'locutora-editor-gallery__item' },
             el('img', { src: url, alt: __('Logotipo ', 'locutora') + (index + 1) }),
             el('span', { className: 'locutora-editor-gallery__number', 'aria-hidden': true }, index + 1),
-            el(Button, {
-              icon: 'no-alt',
-              label: __('Remover logotipo ', 'locutora') + (index + 1),
-              isDestructive: true,
-              onClick: function () { update(value.filter(function (_, itemIndex) { return itemIndex !== index; })); },
-            })
+            el('div', { className: 'locutora-editor-gallery__item-actions' },
+              el(MediaUploadCheck, null,
+                el(MediaUpload, {
+                  allowedTypes: ['image'],
+                  onSelect: function (media) {
+                    update(value.map(function (itemUrl, itemIndex) {
+                      return itemIndex === index ? (media.url || itemUrl) : itemUrl;
+                    }));
+                  },
+                  render: function (mediaProps) {
+                    return el(Button, {
+                      icon: 'update',
+                      variant: 'secondary',
+                      onClick: mediaProps.open,
+                    }, __('Trocar', 'locutora'));
+                  },
+                })
+              ),
+              el(Button, {
+                icon: 'trash',
+                label: __('Excluir logotipo ', 'locutora') + (index + 1),
+                isDestructive: true,
+                variant: 'tertiary',
+                onClick: function () { update(value.filter(function (_, itemIndex) { return itemIndex !== index; })); },
+              }, __('Excluir', 'locutora'))
+            )
           );
         })) : el('div', { className: 'locutora-editor-gallery__empty' },
           el('span', { className: 'dashicons dashicons-format-gallery', 'aria-hidden': true }),
-          el('p', null, __('Nenhum logo personalizado adicionado.', 'locutora'))
+          el('p', null, __('Nenhuma marca será exibida no site.', 'locutora'))
         ),
         el('div', { className: 'locutora-editor-gallery__actions' },
           el(MediaUploadCheck, null,
@@ -189,7 +206,7 @@
               },
               render: function (mediaProps) {
                 return el(Button, { icon: 'plus-alt2', variant: 'primary', onClick: mediaProps.open },
-                  value.length ? __('Adicionar mais marcas', 'locutora') : __('Adicionar marcas', 'locutora'));
+                  __('Adicionar marcas', 'locutora'));
               },
             })
           ),
@@ -197,7 +214,11 @@
             variant: 'tertiary',
             isDestructive: true,
             onClick: function () { update([]); },
-          }, __('Remover todas e usar padrões', 'locutora')) : null
+          }, __('Remover todas', 'locutora')) : null,
+          el(Button, {
+            variant: 'tertiary',
+            onClick: function () { update(defaultItems.slice()); },
+          }, __('Restaurar marcas originais', 'locutora'))
         )
       );
     }

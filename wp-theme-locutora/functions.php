@@ -930,7 +930,7 @@ function locutora_default_brand_urls(): array {
 
 function locutora_render_brands_block(array $attributes): string {
     $title = $attributes['title'] ?? 'Conheça as marcas que já trabalhou';
-    $images = !empty($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
+    $images = isset($attributes['images']) && is_array($attributes['images']) ? $attributes['images'] : locutora_default_brand_urls();
     ob_start(); ?>
     <section class="brand-showcase"><h2<?php echo locutora_heading_style_attribute($attributes); ?>><?php echo locutora_rich_heading((string) $title); ?></h2><div class="brand-grid">
       <?php foreach ($images as $index => $url) : ?><img src="<?php echo esc_url(locutora_brand_asset_url((string) $url)); ?>" alt="Marca <?php echo esc_attr((string) ($index + 1)); ?>" loading="lazy"><?php endforeach; ?>
@@ -1022,6 +1022,7 @@ add_action('init', function (): void {
             includes_url('js/tinymce/skins/wordpress/wp-content.css'),
             get_template_directory_uri() . '/assets/css/editor.css',
         ],
+        'defaultBrandUrls' => locutora_default_brand_urls(),
     ]);
 
     $blocks = [
@@ -1110,7 +1111,7 @@ add_action('init', function (): void {
             'render_callback' => 'locutora_render_brands_block',
             'attributes' => [
                 'title' => ['type' => 'string', 'default' => 'Conheça as marcas que já trabalhou'],
-                'images' => ['type' => 'array', 'default' => []],
+                'images' => ['type' => 'array', 'default' => locutora_default_brand_urls()],
             ],
         ],
         'locutora/audio-showcase' => [

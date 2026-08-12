@@ -242,7 +242,7 @@ body {
 
 .editor-styles-wrapper .locutora-editor-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 12px;
   margin: 16px 0;
 }
@@ -263,39 +263,42 @@ body {
   min-width: 0;
 }
 
-.editor-styles-wrapper .locutora-editor-gallery__item .components-button {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 44px;
+.editor-styles-wrapper .locutora-editor-gallery__item-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.editor-styles-wrapper .locutora-editor-gallery__item-actions .components-button {
+  position: static;
+  justify-content: center;
+  min-width: 0;
   height: 44px;
-  padding: 0;
-  color: var(--loc-editor-paper);
-  background: var(--loc-editor-danger);
-  border-radius: 50%;
+  padding: 0 8px;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 @media (hover: hover) {
-  .editor-styles-wrapper .locutora-editor-gallery__item .components-button:hover {
-    color: var(--loc-editor-paper);
-    background: var(--loc-editor-danger);
+  .editor-styles-wrapper .locutora-editor-gallery__item-actions .components-button:hover {
     transform: translateY(-1px);
   }
 }
 
-.editor-styles-wrapper .locutora-editor-gallery__item .components-button:focus-visible,
+.editor-styles-wrapper .locutora-editor-gallery__item-actions .components-button:focus-visible,
 .editor-styles-wrapper .locutora-editor-gallery__actions .components-button:focus-visible {
   outline: 3px solid var(--loc-editor-focus);
   outline-offset: 2px;
   box-shadow: none;
 }
 
-.editor-styles-wrapper .locutora-editor-gallery__item .components-button:active,
+.editor-styles-wrapper .locutora-editor-gallery__item-actions .components-button:active,
 .editor-styles-wrapper .locutora-editor-gallery__actions .components-button:active {
   transform: translateY(1px);
 }
 
-.editor-styles-wrapper .locutora-editor-gallery__item .components-button:disabled,
+.editor-styles-wrapper .locutora-editor-gallery__item-actions .components-button:disabled,
 .editor-styles-wrapper .locutora-editor-gallery__actions .components-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -303,7 +306,7 @@ body {
 
 .editor-styles-wrapper .locutora-editor-gallery__number {
   position: absolute;
-  bottom: 5px;
+  top: 68px;
   left: 5px;
   min-width: 22px;
   padding: 2px 5px;
