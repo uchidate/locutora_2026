@@ -61,8 +61,8 @@
       block_formats: __('Parágrafo=p;Título 2=h2;Título 3=h3;Título 4=h4;Citação=blockquote', 'locutora'),
       font_formats: 'Padrão do tema=inherit;Montserrat=Montserrat,Arial,sans-serif;Arial=Arial,Helvetica,sans-serif;Georgia=Georgia,serif;Times New Roman=Times New Roman,serif;Courier New=Courier New,monospace',
       fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px 40px 48px',
-      toolbar1: 'formatselect,fontselect,fontsizeselect,bold,italic,underline,forecolor,removeformat',
-      toolbar2: 'bullist,numlist,blockquote,alignleft,aligncenter,alignright,alignjustify,outdent,indent,link,unlink,undo,redo',
+      toolbar1: 'formatselect,fontselect,fontsizeselect,bold,italic,underline,bullist,numlist,outdent,indent,forecolor,link,unlink,undo,redo,removeformat',
+      toolbar2: 'blockquote,alignleft,aligncenter,alignright,alignjustify',
       setup: function (tinymceEditor) {
         ['change', 'input', 'keyup', 'undo', 'redo', 'SetContent', 'blur'].forEach(function (eventName) {
           tinymceEditor.on(eventName, function () { onChange(); });
