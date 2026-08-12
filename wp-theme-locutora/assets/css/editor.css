@@ -432,11 +432,24 @@ body {
   overflow: clip;
 }
 
+.editor-styles-wrapper .locutora-block-preview--mobile {
+  max-width: 390px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .editor-styles-wrapper .locutora-block-preview__bar {
   align-items: center;
   padding: 16px 20px;
   background: var(--loc-editor-paper);
   border-bottom: 1px solid var(--loc-editor-border);
+}
+
+.editor-styles-wrapper .locutora-block-preview__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .editor-styles-wrapper .locutora-block-preview__bar strong,
@@ -476,6 +489,17 @@ body {
 .editor-styles-wrapper .locutora-privacy-editor__guide strong {
   flex: 0 0 auto;
   color: var(--loc-editor-accent-strong);
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.editor-styles-wrapper .locutora-privacy-editor__actions .components-button {
+  min-height: 40px;
 }
 
 .editor-styles-wrapper .locutora-privacy-editor__blocks {

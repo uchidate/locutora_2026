@@ -31,6 +31,10 @@
     return (container.textContent || container.innerText || '').replace(/\s+/g, ' ').trim();
   }
 
+  function looksLikeLink(value) {
+    return /^(\/|https?:\/\/|mailto:|tel:|#)/i.test((value || '').trim());
+  }
+
   function fieldHelp(field, value) {
     const count = plainText(Array.isArray(value) ? '' : value).length;
     const guidance = field.help || (field.recommended
@@ -395,6 +399,9 @@
       const state = useState('edit');
       const mode = state[0];
       const setMode = state[1];
+      const previewState = useState('desktop');
+      const previewSize = previewState[0];
+      const setPreviewSize = previewState[1];
       const controls = fields.map(function (field) { return fieldControl(field, props, false); });
       const sidebarControls = fields.filter(function (field) { return !field.richtext && !field.wysiwyg; }).map(function (field) { return fieldControl(field, props, true); });
       const editableTitle = title.replace(/^Locutora\s*[—-]\s*/, '');
@@ -406,7 +413,10 @@
       fields.forEach(function (field) {
         const value = props.attributes[field.name];
         if (field.url && !plainText(value || '')) {
-          warnings.push(__('Confira o campo de link: ', 'locutora') + field.label);
+          warnings.push(__('Preencha o campo de link: ', 'locutora') + field.label);
+        }
+        if (field.url && plainText(value || '') && !looksLikeLink(value || '')) {
+          warnings.push(__('Link parece inválido: use /pagina/, https://, mailto: ou tel: em ', 'locutora') + field.label);
         }
         if (/Alt$/i.test(field.name) && !plainText(value || '')) {
           warnings.push(__('Adicione uma descrição para acessibilidade: ', 'locutora') + field.label);
@@ -466,13 +476,16 @@
           ) : null,
           el('div', { className: 'locutora-block-editor__fields' }, controls)
         ) : null,
-        mode === 'preview' ? el('div', { className: 'locutora-block-preview' },
+        mode === 'preview' ? el('div', { className: 'locutora-block-preview' + (previewSize === 'mobile' ? ' locutora-block-preview--mobile' : '') },
           el('div', { className: 'locutora-block-preview__bar' },
             el('div', null,
               el('strong', null, __('Prévia da seção', 'locutora')),
               el('span', null, __('Confira o texto no contexto visual do site.', 'locutora'))
             ),
-            modeButton('edit', 'edit', __('Voltar para edição', 'locutora'))
+            el('div', { className: 'locutora-block-preview__actions' },
+              el(Button, { variant: previewSize === 'mobile' ? 'primary' : 'secondary', onClick: function () { setPreviewSize(previewSize === 'mobile' ? 'desktop' : 'mobile'); } }, previewSize === 'mobile' ? __('Ver largura normal', 'locutora') : __('Ver no celular', 'locutora')),
+              modeButton('edit', 'edit', __('Voltar para edição', 'locutora'))
+            )
           ),
           el(ServerSideRender, { block: props.name, attributes: props.attributes })
         ) : null
@@ -481,7 +494,15 @@
   }
 
   function privacyEditor(title, description) {
-    return function PrivacyEdit() {
+    return function PrivacyEdit(props) {
+      function insertBlock(blockName, attributes) {
+        if (!window.wp.blocks || !window.wp.data) {
+          return;
+        }
+        const block = window.wp.blocks.createBlock(blockName, attributes || {});
+        window.wp.data.dispatch('core/block-editor').insertBlock(block, undefined, props.clientId);
+      }
+
       return el('div', { className: 'locutora-block-editor locutora-block-editor--privacy' },
         el('header', { className: 'locutora-block-editor__header' },
           el('div', { className: 'locutora-block-editor__heading' },
@@ -493,6 +514,12 @@
         el('div', { className: 'locutora-privacy-editor__guide' },
           el('strong', null, __('Como editar', 'locutora')),
           el('span', null, __('Clique em um trecho para abrir sua barra de ferramentas. Enter cria um novo parágrafo; o botão + adiciona títulos e listas.', 'locutora'))
+        ),
+        el('div', { className: 'locutora-privacy-editor__actions' },
+          el(Button, { variant: 'secondary', icon: 'heading', onClick: function () { insertBlock('core/heading', { level: 2, content: 'Novo título' }); } }, __('Adicionar título', 'locutora')),
+          el(Button, { variant: 'secondary', icon: 'editor-paragraph', onClick: function () { insertBlock('core/paragraph', { content: 'Novo parágrafo da política.' }); } }, __('Adicionar parágrafo', 'locutora')),
+          el(Button, { variant: 'secondary', icon: 'editor-ul', onClick: function () { insertBlock('core/list'); } }, __('Adicionar lista', 'locutora')),
+          el(Button, { variant: 'secondary', icon: 'plus-alt2', onClick: function () { insertBlock('core/heading', { level: 3, content: 'Nova cláusula' }); insertBlock('core/paragraph', { content: 'Descreva aqui a cláusula da política.' }); } }, __('Adicionar cláusula padrão', 'locutora'))
         ),
         el('div', { className: 'privacy-page__content locutora-privacy-editor__blocks' },
           el(InnerBlocks, {
