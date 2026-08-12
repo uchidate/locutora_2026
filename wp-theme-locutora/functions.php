@@ -1379,7 +1379,7 @@ add_action('init', function (): void {
     wp_register_script(
         'locutora-blocks-editor',
         get_template_directory_uri() . '/assets/js/blocks-editor.js',
-        ['wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render', 'editor', 'quicktags'],
+	        ['wp-blocks', 'wp-block-editor', 'wp-components', 'wp-element', 'wp-i18n', 'wp-server-side-render', 'wp-plugins', 'wp-edit-post', 'wp-data', 'wp-compose', 'editor', 'quicktags'],
         $version,
         true
     );
@@ -1518,10 +1518,24 @@ add_action('init', function (): void {
             'api_version' => 2,
             'editor_script' => 'locutora-blocks-editor',
         ]));
-    }
-});
+	    }
+	});
 
-/**
+	add_action('init', function (): void {
+	    foreach (['rank_math_title', 'rank_math_description'] as $meta_key) {
+	        register_post_meta('page', $meta_key, [
+	            'show_in_rest' => true,
+	            'single' => true,
+	            'type' => 'string',
+	            'auth_callback' => static function (): bool {
+	                return current_user_can('edit_pages');
+	            },
+	            'sanitize_callback' => $meta_key === 'rank_math_title' ? 'sanitize_text_field' : 'sanitize_textarea_field',
+	        ]);
+	    }
+	}, 20);
+
+	/**
  * Carrega o TinyMCE clássico (fonte, tamanho, parágrafo) dentro do editor de blocos.
  */
 add_action('enqueue_block_editor_assets', function (): void {
