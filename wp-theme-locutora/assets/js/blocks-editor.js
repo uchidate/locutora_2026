@@ -17,7 +17,98 @@
   const MediaUpload = blockEditor.MediaUpload;
   const MediaUploadCheck = blockEditor.MediaUploadCheck;
   const ServerSideRender = serverSideRender;
+  const useEffect = element.useEffect;
+  const useRef = element.useRef;
   const __ = i18n.__;
+
+  const classicEditor = window.wp.oldEditor || window.wp.editor;
+  const editorSettings = window.locutoraEditorSettings || {};
+  let wysiwygCounter = 0;
+
+  function tinymceSettings(onChange) {
+    return {
+      wpautop: true,
+      menubar: false,
+      branding: false,
+      statusbar: false,
+      browser_spellcheck: true,
+      content_css: (editorSettings.contentCss || []).join(','),
+      block_formats: __('Parágrafo=p;Título 2=h2;Título 3=h3;Título 4=h4;Citação=blockquote', 'locutora'),
+      font_formats: 'Padrão do tema=inherit;Montserrat=Montserrat,Arial,sans-serif;Arial=Arial,Helvetica,sans-serif;Georgia=Georgia,serif;Times New Roman=Times New Roman,serif;Courier New=Courier New,monospace',
+      fontsize_formats: '12px 14px 16px 18px 20px 24px 28px 32px 40px 48px',
+      toolbar1: 'formatselect,fontselect,fontsizeselect,bold,italic,underline,forecolor,removeformat',
+      toolbar2: 'bullist,numlist,blockquote,alignleft,aligncenter,alignright,alignjustify,outdent,indent,link,unlink,undo,redo',
+      setup: function (tinymceEditor) {
+        ['change', 'input', 'keyup', 'undo', 'redo', 'SetContent', 'blur'].forEach(function (eventName) {
+          tinymceEditor.on(eventName, function () { onChange(); });
+        });
+      },
+    };
+  }
+
+  function WysiwygField(props) {
+    const field = props.field;
+    const onChange = props.onChange;
+    const initialValue = props.initialValue;
+    const idRef = useRef(null);
+    const textareaRef = useRef(null);
+    const onChangeRef = useRef(onChange);
+    onChangeRef.current = onChange;
+
+    if (idRef.current === null) {
+      wysiwygCounter += 1;
+      idRef.current = 'locutora-wysiwyg-' + wysiwygCounter;
+    }
+    const editorId = idRef.current;
+
+    useEffect(function () {
+      const textarea = textareaRef.current;
+      if (!textarea || !classicEditor || typeof classicEditor.initialize !== 'function') {
+        return undefined;
+      }
+      // O TinyMCE clássico só funciona fora do iframe do canvas (blocos apiVersion 2).
+      if (textarea.ownerDocument !== window.document) {
+        return undefined;
+      }
+
+      let timer = null;
+      const pushChange = function () {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(function () {
+          const next = classicEditor.getContent(editorId);
+          if (typeof next === 'string') {
+            onChangeRef.current(next);
+          }
+        }, 300);
+      };
+
+      classicEditor.initialize(editorId, {
+        tinymce: tinymceSettings(pushChange),
+        quicktags: { buttons: 'strong,em,link,ul,ol,li,block,h2,h3,close' },
+        mediaButtons: false,
+      });
+
+      return function () {
+        window.clearTimeout(timer);
+        if (typeof classicEditor.remove === 'function') {
+          classicEditor.remove(editorId);
+        }
+      };
+    }, [editorId]);
+
+    return el(
+      BaseControl,
+      { label: field.label, className: 'locutora-editor-field locutora-editor-field--wysiwyg', help: field.help || undefined },
+      el('textarea', {
+        id: editorId,
+        ref: textareaRef,
+        className: 'locutora-editor-wysiwyg wp-editor-area',
+        rows: field.rows || 12,
+        defaultValue: initialValue,
+        onChange: function (event) { onChangeRef.current(event.target.value); },
+      })
+    );
+  }
 
   function fieldControl(field, props, compact) {
     const value = props.attributes[field.name] || (field.gallery ? [] : '');
@@ -76,7 +167,11 @@
       );
     }
 
-    if (field.richtext && !compact) {
+    if (field.wysiwyg && !compact && classicEditor && typeof classicEditor.initialize === 'function') {
+      return el(WysiwygField, { key: field.name, field: field, initialValue: value, onChange: update });
+    }
+
+    if ((field.richtext || field.wysiwyg) && !compact) {
       return el(
         BaseControl,
         { key: field.name, label: field.label, className: 'locutora-editor-field locutora-editor-field--richtext' },
@@ -118,7 +213,7 @@
       const mode = state[0];
       const setMode = state[1];
       const controls = fields.map(function (field) { return fieldControl(field, props, false); });
-      const sidebarControls = fields.filter(function (field) { return !field.richtext; }).map(function (field) { return fieldControl(field, props, true); });
+      const sidebarControls = fields.filter(function (field) { return !field.richtext && !field.wysiwyg; }).map(function (field) { return fieldControl(field, props, true); });
 
       return el(
         Fragment,
@@ -165,7 +260,7 @@
         { name: 'title', label: 'Título', richtext: true },
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
-        { name: 'content', label: 'Texto da apresentação', richtext: true },
+        { name: 'content', label: 'Texto da apresentação', wysiwyg: true, rows: 16 },
         { name: 'buttonLabel', label: 'Texto do botão' },
         { name: 'buttonUrl', label: 'Destino do botão' },
         { name: 'portraitUrl', label: 'Foto da locutora', media: true },
@@ -228,11 +323,11 @@
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
         { name: 'missionTitle', label: 'Título: Missão' },
-        { name: 'missionText', label: 'Texto da missão', multiline: true, rows: 4 },
+        { name: 'missionText', label: 'Texto da missão', wysiwyg: true, rows: 8 },
         { name: 'visionTitle', label: 'Título: Visão' },
-        { name: 'visionText', label: 'Texto da visão', multiline: true, rows: 4 },
+        { name: 'visionText', label: 'Texto da visão', wysiwyg: true, rows: 8 },
         { name: 'valuesTitle', label: 'Título: Valores' },
-        { name: 'valuesText', label: 'Texto dos valores', multiline: true, rows: 4 },
+        { name: 'valuesText', label: 'Texto dos valores', wysiwyg: true, rows: 8 },
         { name: 'imageUrl', label: 'Imagem do estúdio', media: true },
         { name: 'imageAlt', label: 'Descrição da imagem' },
       ],
@@ -246,12 +341,12 @@
         { name: 'title', label: 'Nome', richtext: true },
         { name: 'titleAlign', label: 'Alinhamento do título', options: [{ label: 'Padrão', value: '' }, { label: 'Esquerda', value: 'left' }, { label: 'Centralizado', value: 'center' }, { label: 'Direita', value: 'right' }] },
         { name: 'titleFont', label: 'Fonte do título', options: [{ label: 'Padrão do tema', value: '' }, { label: 'Montserrat', value: 'montserrat' }, { label: 'Arial', value: 'arial' }, { label: 'Georgia', value: 'georgia' }] },
-        { name: 'paragraph1', label: 'Biografia — parágrafo 1', multiline: true, rows: 5 },
-        { name: 'paragraph2', label: 'Biografia — parágrafo 2', multiline: true, rows: 5 },
-        { name: 'paragraph3', label: 'Biografia — parágrafo 3', multiline: true, rows: 5 },
-        { name: 'paragraph4', label: 'Biografia — parágrafo 4', multiline: true, rows: 5 },
-        { name: 'paragraph5', label: 'Biografia — parágrafo 5', multiline: true, rows: 5 },
-        { name: 'paragraph6', label: 'Biografia — parágrafo 6', multiline: true, rows: 5 },
+        { name: 'paragraph1', label: 'Biografia — parágrafo 1', wysiwyg: true, rows: 8 },
+        { name: 'paragraph2', label: 'Biografia — parágrafo 2', wysiwyg: true, rows: 8 },
+        { name: 'paragraph3', label: 'Biografia — parágrafo 3', wysiwyg: true, rows: 8 },
+        { name: 'paragraph4', label: 'Biografia — parágrafo 4', wysiwyg: true, rows: 8 },
+        { name: 'paragraph5', label: 'Biografia — parágrafo 5', wysiwyg: true, rows: 8 },
+        { name: 'paragraph6', label: 'Biografia — parágrafo 6', wysiwyg: true, rows: 8 },
         { name: 'imageUrl', label: 'Retrato', media: true },
         { name: 'imageAlt', label: 'Descrição do retrato' },
       ],
@@ -299,7 +394,7 @@
 
   definitions.forEach(function (definition) {
     blocks.registerBlockType(definition.name, {
-      apiVersion: 3,
+      apiVersion: 2,
       title: definition.title,
       icon: definition.icon,
       category: 'design',
