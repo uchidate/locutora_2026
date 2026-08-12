@@ -5,7 +5,7 @@ if (!defined('DISALLOW_FILE_EDIT')) {
     define('DISALLOW_FILE_EDIT', true);
 }
 
-const LOCUTORA_SITE_CONFIG_VERSION = 67;
+const LOCUTORA_SITE_CONFIG_VERSION = 68;
 
 const LOCUTORA_DEFAULT_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Ol%C3%A1%2C%20vim%20pelo%20site%20da%20Locutora.com%20e%20gostaria%20de%20solicitar%20um%20or%C3%A7amento.';
 const LOCUTORA_LEGACY_WHATSAPP_URL = 'https://wa.me/5511984404171?text=Entro%20em%20contato%20atrav%C3%A9s%20do%20site';
@@ -377,6 +377,50 @@ function locutora_import_theme_media_to_library(): void {
     }
 }
 
+function locutora_theme_media_attachment_id(string $relative_path): int {
+    $attachments = get_posts([
+        'post_type' => 'attachment',
+        'post_status' => 'inherit',
+        'posts_per_page' => 1,
+        'fields' => 'ids',
+        'meta_key' => '_locutora_theme_media_source',
+        'meta_value' => $relative_path,
+        'orderby' => 'ID',
+        'order' => 'ASC',
+    ]);
+
+    return isset($attachments[0]) ? (int) $attachments[0] : 0;
+}
+
+function locutora_theme_media_url(string $relative_path): string {
+    $attachment_id = locutora_theme_media_attachment_id($relative_path);
+    $url = $attachment_id > 0 ? wp_get_attachment_url($attachment_id) : '';
+    return $url ?: get_template_directory_uri() . '/' . $relative_path;
+}
+
+function locutora_consolidate_theme_media_duplicates(): void {
+    foreach (array_keys(locutora_media_import_manifest()) as $relative_path) {
+        $attachments = get_posts([
+            'post_type' => 'attachment',
+            'post_status' => 'inherit',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'meta_key' => '_locutora_theme_media_source',
+            'meta_value' => $relative_path,
+            'orderby' => 'ID',
+            'order' => 'ASC',
+        ]);
+
+        if (count($attachments) <= 1) {
+            continue;
+        }
+
+        foreach (array_slice($attachments, 1) as $duplicate_id) {
+            wp_trash_post((int) $duplicate_id);
+        }
+    }
+}
+
 function locutora_migrate_editable_blocks(array &$blocks): bool {
     $changed = false;
 
@@ -504,6 +548,7 @@ function locutora_configure_site_on_activation(): void {
     locutora_migrate_editable_page_blocks();
     locutora_migrate_contact_settings();
     locutora_import_theme_media_to_library();
+    locutora_consolidate_theme_media_duplicates();
     locutora_apply_rank_math_metadata();
     locutora_configure_rank_math_identity();
 
@@ -756,11 +801,11 @@ add_action('init', function (): void {
 }, 101);
 
 add_filter('rank_math/opengraph/facebook/image', function ($image) {
-    return $image ?: (string) locutora_setting('social_image', get_template_directory_uri() . '/assets/images/intro.png');
+    return $image ?: (string) locutora_setting('social_image', locutora_theme_media_url('assets/images/intro.png'));
 });
 
 add_filter('rank_math/opengraph/twitter/image', function ($image) {
-    return $image ?: (string) locutora_setting('social_image', get_template_directory_uri() . '/assets/images/intro.png');
+    return $image ?: (string) locutora_setting('social_image', locutora_theme_media_url('assets/images/intro.png'));
 });
 
 add_filter('robots_txt', function (string $output): string {
@@ -792,8 +837,8 @@ add_action('wp_head', function (): void {
                 'url' => home_url('/'),
                 'foundingDate' => '2004',
                 'founder' => ['@type' => 'Person', 'name' => 'Adriana Rosa'],
-                'logo' => ['@type' => 'ImageObject', 'url' => get_template_directory_uri() . '/assets/images/logo-adriana-rosa.png'],
-                'image' => get_template_directory_uri() . '/assets/images/intro.png',
+                'logo' => ['@type' => 'ImageObject', 'url' => locutora_theme_media_url('assets/images/logo-adriana-rosa.png')],
+                'image' => locutora_theme_media_url('assets/images/intro.png'),
                 'email' => 'adrianarosa@locutora.com',
                 'telephone' => '+55 11 98440-4171',
                 'areaServed' => ['@type' => 'Country', 'name' => 'Brasil'],
@@ -918,13 +963,11 @@ function locutora_render_hero_block(array $attributes): string {
     $eyebrow = $attributes['eyebrow'] ?? 'Locutora.com';
     $title = $attributes['title'] ?? 'Gravações profissionais';
     $subtitle = $attributes['subtitle'] ?? 'Adriana Rosa';
-    $uri = get_template_directory_uri();
-
     ob_start(); ?>
     <section class="hero" id="hero">
       <?php foreach ([1, 2, 3] as $index) : ?>
         <video class="hero__video<?php echo $index === 1 ? ' is-active' : ''; ?>" <?php echo $index === 1 ? 'autoplay ' : ''; ?>muted playsinline preload="metadata" aria-hidden="true">
-          <source src="<?php echo esc_url($uri . '/assets/video/vitrine-' . $index . '.mp4'); ?>" type="video/mp4">
+          <source src="<?php echo esc_url(locutora_theme_media_url('assets/video/vitrine-' . $index . '.mp4')); ?>" type="video/mp4">
         </video>
       <?php endforeach; ?>
       <div class="hero__overlay" aria-hidden="true"></div>
@@ -944,7 +987,7 @@ function locutora_render_intro_block(array $attributes): string {
     $button_url = $attributes['buttonUrl'] ?? '';
     $button_url = $button_url ?: home_url('/sobre-nos/');
     $portrait_url = $attributes['portraitUrl'] ?? '';
-    $portrait_url = $portrait_url ?: get_template_directory_uri() . '/assets/images/intro.png';
+    $portrait_url = $portrait_url ?: locutora_theme_media_url('assets/images/intro.png');
     $portrait_alt = $attributes['portraitAlt'] ?? 'Adriana Rosa, locutora profissional';
 
     ob_start(); ?>
@@ -999,7 +1042,7 @@ function locutora_render_services_block(array $attributes): string {
         <?php foreach ($services as $service) : ?>
           <?php if (trim((string) $service['title']) === '') { continue; } ?>
           <a class="service-item reveal reveal--fade" href="<?php echo esc_url($service['url'] ?: $services_url); ?>">
-            <img src="<?php echo esc_url($service['iconUrl'] ?: get_template_directory_uri() . '/assets/images/' . $service['fallback']); ?>" alt="<?php echo esc_attr($service['iconAlt']); ?>">
+            <img src="<?php echo esc_url($service['iconUrl'] ?: locutora_theme_media_url('assets/images/' . $service['fallback'])); ?>" alt="<?php echo esc_attr($service['iconAlt']); ?>">
             <h3 class="service-item__title"><?php echo esc_html($service['title']); ?></h3>
           </a>
         <?php endforeach; ?>
@@ -1014,7 +1057,7 @@ function locutora_render_contact_cta_block(array $attributes): string {
     $button_url = $attributes['buttonUrl'] ?? '';
     $button_url = $button_url ?: home_url('/contato/');
     $video_url = $attributes['videoUrl'] ?? '';
-    $video_url = $video_url ?: get_template_directory_uri() . '/assets/video/contato.mp4';
+    $video_url = $video_url ?: locutora_theme_media_url('assets/video/contato.mp4');
 
     ob_start(); ?>
     <section class="cta-block" id="contato">
@@ -1051,7 +1094,7 @@ function locutora_render_about_story_block(array $attributes): string {
     $title = preg_replace('/<br\s*\/?>/i', "\n", $title) ?: $title;
     $legacy_content = $attributes['content'] ?? locutora_about_story_default_content();
     $uses_legacy_content = $legacy_content !== locutora_about_story_default_content();
-    $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/sobre-intro.png';
+    $image_url = ($attributes['imageUrl'] ?? '') ?: locutora_theme_media_url('assets/images/internal/sobre-intro.png');
     $image_alt = $attributes['imageAlt'] ?? 'Mesa de áudio de estúdio profissional';
     ob_start(); ?>
     <section class="about-story about-story--history"><div class="about-story__row">
@@ -1099,7 +1142,7 @@ function locutora_render_about_bio_block(array $attributes): string {
         }
         $legacy_content = $merged;
     }
-    $image_url = ($attributes['imageUrl'] ?? '') ?: get_template_directory_uri() . '/assets/images/internal/adriana-rosa-retrato.jpg';
+    $image_url = ($attributes['imageUrl'] ?? '') ?: locutora_theme_media_url('assets/images/internal/adriana-rosa-retrato.jpg');
     $image_alt = $attributes['imageAlt'] ?? 'Retrato ilustrado de Adriana Rosa';
     ob_start(); ?>
     <section class="about-story about-story--bio"><div class="about-bio__row">
@@ -1134,7 +1177,7 @@ function locutora_brand_asset_url(string $url): string {
 
 function locutora_default_brand_urls(): array {
     $names = ['apple','Liza','santander','Globo','Claro','boticario','Adria2','bradesco','3m','natura','cielo','amil','avon2','viacredi','mcdonalds','neoenergia','danone','paodeaçucar','boston2','Vivo','netflix','Nespresso'];
-    return array_map(static fn(string $name): string => locutora_brand_asset_url(get_template_directory_uri() . '/assets/images/brands/' . $name . '.png'), $names);
+    return array_map(static fn(string $name): string => locutora_brand_asset_url(locutora_theme_media_url('assets/images/brands/' . $name . '.png')), $names);
 }
 
 function locutora_default_brand_items(): array {
