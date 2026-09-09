@@ -11,11 +11,17 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "wp", "-pwp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
   wordpress:
-    image: wordpress:latest
+    image: wordpress:7.0-php8.3-apache
     restart: unless-stopped
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8081:80"
     environment:
@@ -26,6 +32,7 @@ services:
       WORDPRESS_TABLE_PREFIX: lc_
       WORDPRESS_DEBUG: "1"
     volumes:
+      - wp_html:/var/www/html
       # monta o tema direto na pasta de temas do WP
       - ./wp-theme-locutora:/var/www/html/wp-content/themes/locutora
       # uploads persistentes
@@ -35,8 +42,10 @@ services:
   wpcli:
     image: wordpress:cli-php8.3
     depends_on:
-      - db
-      - wordpress
+      db:
+        condition: service_healthy
+      wordpress:
+        condition: service_started
     environment:
       WORDPRESS_DB_HOST:     db
       WORDPRESS_DB_NAME:     locutora
@@ -48,5 +57,6 @@ services:
     working_dir: /var/www/html
 
 volumes:
+  wp_html:
   db_data:
   wp_uploads:
