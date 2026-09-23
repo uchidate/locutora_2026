@@ -2375,6 +2375,13 @@ add_action('acf/init', function (): void {
 	add_action('admin_post_nopriv_locutora_contact', 'locutora_handle_contact');
 	add_action('admin_post_locutora_contact', 'locutora_handle_contact');
 
+	add_filter('wp_mail_from', static function (): string {
+	    return 'adrianarosa@locutora.com';
+	}, PHP_INT_MAX);
+	add_filter('wp_mail_from_name', static function (): string {
+	    return 'Locutora.com';
+	}, PHP_INT_MAX);
+
 	add_action('template_redirect', function (): void {
 	    if (is_page('contato')) {
 	        nocache_headers();
