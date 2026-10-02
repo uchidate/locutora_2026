@@ -2355,7 +2355,7 @@ add_action('acf/init', function (): void {
 	            ['Reply-To: ' . $nome . ' <' . $email . '>']
 	        );
 	        if (!$ok) {
-	            $error = 'O WordPress não conseguiu enviar o e-mail.';
+	            $error = 'O WordPress não conseguiu enviar o e-mail. ' . ($GLOBALS['locutora_mail_error'] ?? '');
 	        }
 	    }
 
@@ -2375,8 +2375,25 @@ add_action('acf/init', function (): void {
 	add_action('admin_post_nopriv_locutora_contact', 'locutora_handle_contact');
 	add_action('admin_post_locutora_contact', 'locutora_handle_contact');
 
+	/* SMTP autenticado: credenciais vêm de constantes no wp-config.php (nunca no repositório). */
+	add_action('phpmailer_init', static function ($mailer): void {
+	    if (!defined('LOCUTORA_SMTP_USER') || !defined('LOCUTORA_SMTP_PASS')) {
+	        return;
+	    }
+	    $secure = defined('LOCUTORA_SMTP_SECURE') ? (string) LOCUTORA_SMTP_SECURE : 'tls';
+	    $mailer->isSMTP();
+	    $mailer->Host = defined('LOCUTORA_SMTP_HOST') ? (string) LOCUTORA_SMTP_HOST : 'smtp.hostinger.com';
+	    $mailer->Port = defined('LOCUTORA_SMTP_PORT') ? (int) LOCUTORA_SMTP_PORT : ($secure === 'ssl' ? 465 : 587);
+	    $mailer->SMTPAuth = true;
+	    $mailer->SMTPSecure = $secure;
+	    $mailer->Username = (string) LOCUTORA_SMTP_USER;
+	    $mailer->Password = preg_replace('/\s+/', '', (string) LOCUTORA_SMTP_PASS);
+	});
+	add_action('wp_mail_failed', static function ($error): void {
+	    $GLOBALS['locutora_mail_error'] = is_wp_error($error) ? $error->get_error_message() : '';
+	});
 	add_filter('wp_mail_from', static function (): string {
-	    return 'adrianarosa@locutora.com';
+	    return defined('LOCUTORA_SMTP_USER') ? (string) LOCUTORA_SMTP_USER : 'adrianarosa@locutora.com';
 	}, PHP_INT_MAX);
 	add_filter('wp_mail_from_name', static function (): string {
 	    return 'Locutora.com';
