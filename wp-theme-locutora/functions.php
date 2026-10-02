@@ -2388,7 +2388,7 @@ add_action('acf/init', function (): void {
 	    $mailer->SMTPSecure = $secure;
 	    $mailer->Username = (string) LOCUTORA_SMTP_USER;
 	    $mailer->Password = preg_replace('/\s+/', '', (string) LOCUTORA_SMTP_PASS);
-	});
+	}, PHP_INT_MAX);
 	add_action('wp_mail_failed', static function ($error): void {
 	    $GLOBALS['locutora_mail_error'] = is_wp_error($error) ? $error->get_error_message() : '';
 	});
