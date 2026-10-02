@@ -2345,6 +2345,7 @@ add_action('acf/init', function (): void {
 		    $error = '';
 		    if (!$has_valid_nonce) {
 		        $error = 'Token de segurança ausente ou expirado.';
+		        do_action('litespeed_purge_url', home_url('/contato/'));
 		    } elseif (!$nome || !is_email($email) || !$assunto || $recipients === []) {
 		        $error = 'Dados obrigatórios inválidos.';
 		    } else {
@@ -2402,6 +2403,7 @@ add_action('acf/init', function (): void {
 	add_action('template_redirect', function (): void {
 	    if (is_page('contato')) {
 	        nocache_headers();
+	        do_action('litespeed_control_set_nocache', 'formulário com nonce');
 	    }
 	});
 
